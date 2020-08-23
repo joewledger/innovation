@@ -29,6 +29,14 @@ class Position(Enum):
     BOTTOM_RIGHT = 4
 
 
+@unique
+class SplayDirection(Enum):
+    NONE = 1
+    LEFT = 2
+    RIGHT = 3
+    UP = 4
+
+
 @dataclass
 class Symbol:
     symbol_type: SymbolType

@@ -1,29 +1,28 @@
-from src.innovation.card_properties import Symbol, Color, SymbolType, Position
-from src.innovation.card_effects import BaseDemand, BaseDogma
+from src.innovation.utils.registry import ImmutableRegistry, Registerable
+from src.innovation.cards.card_properties import Symbol, Color, SymbolType, Position, SplayDirection
+from src.innovation.cards.card_effects import BaseDemand, BaseDogma
 from dataclasses import dataclass
-from frozendict import frozendict
-from typing import List, Union
+from typing import List, Union, Deque
 
 
 @dataclass(frozen=True)
-class Card:
-    name: str
+class Card(Registerable):
     color: Color
     age: int
     symbols: List[Symbol]
     effects: List[Union[BaseDogma, BaseDemand]]
 
-
-class ImmutableCardRegistry:
-    def __init__(self, cards: List[Card]):
-        self._cards = frozendict({card.name: card for card in cards})
-
-    @property
-    def cards(self) -> frozendict:
-        return self._cards
+    def __hash__(self):
+        return super().__hash__()
 
 
-GLOBAL_CARD_REGISTRY = ImmutableCardRegistry(
+@dataclass
+class CardStack:
+    stack: Deque[Card]
+    splay: SplayDirection
+
+
+GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
             name="Archery",
@@ -49,3 +48,5 @@ GLOBAL_CARD_REGISTRY = ImmutableCardRegistry(
         )
     ]
 )
+
+
