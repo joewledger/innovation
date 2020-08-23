@@ -45,6 +45,17 @@ GLOBAL_CARD_REGISTRY = ImmutableRegistry(
                 Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT)
             ],
             effects=[]
+        ),
+        Card(
+            name="The Wheel",
+            color=Color.GREEN,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT)
+            ],
+            effects=[]
         )
     ]
 )
