@@ -18,7 +18,13 @@ class Player:
 
     @property
     def max_age_top_card(self) -> int:
-        return -1
+        if all(card_stack.is_empty for card_stack in self.board.values()):
+            return 1
+
+        return max(
+            card_stack.top_card.age for card_stack in self.board.values()
+            if card_stack.top_card
+        )
 
     def meld(self, card: Card):
         color = card.color

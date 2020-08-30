@@ -64,3 +64,12 @@ class Card(Registerable):
 class CardStack:
     stack: Deque[Card]
     splay: SplayDirection
+
+    @property
+    def is_empty(self):
+        return not bool(self.stack)
+
+    @property
+    def top_card(self) -> Card:
+        if not self.is_empty:
+            return self.stack[-1]
