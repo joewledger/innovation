@@ -1,5 +1,5 @@
-from src.innovation.cards.achievements import GLOBAL_ACHIEVEMENTS_REGISTRY
-from src.innovation.cards.cards import GLOBAL_CARD_REGISTRY
+from src.innovation.cards.achievement_registry import GLOBAL_ACHIEVEMENTS_REGISTRY
+from src.innovation.cards.card_registry import GLOBAL_CARD_REGISTRY
 
 
 def test_card_registry_names():
@@ -19,23 +19,28 @@ def test_card_registry_symbols():
 def test_achievement_registry_contents():
     achievements = GLOBAL_ACHIEVEMENTS_REGISTRY.registry.values()
     assert len(achievements) == 14
-    assert sum(1 for a in achievements if a.is_automatic) == 5  # Non-scoring achievements
-    assert sum(1 for a in achievements if not a.is_automatic) == 9  # Scoring achievements
-    assert all(card_name == card.name for card_name, card in GLOBAL_ACHIEVEMENTS_REGISTRY.registry.items())
+    assert (
+        sum(1 for a in achievements if a.is_automatic) == 5
+    )  # Non-scoring achievements
+    assert (
+        sum(1 for a in achievements if not a.is_automatic) == 9
+    )  # Scoring achievements
+    assert all(
+        card_name == card.name
+        for card_name, card in GLOBAL_ACHIEVEMENTS_REGISTRY.registry.items()
+    )
 
-    expected_scoring_achievements = {
-        f"Scoring Achievement {n}" for n in range(1, 10)
-    }
+    expected_scoring_achievements = {f"Scoring Achievement {n}" for n in range(1, 10)}
 
     expected_non_scoring_achievements = {
         "Monument",
         "Empire",
         "Wonder",
         "World",
-        "Universe"
+        "Universe",
     }
 
     assert all(
-        a in GLOBAL_ACHIEVEMENTS_REGISTRY.registry for a in
-        expected_scoring_achievements & expected_non_scoring_achievements
+        a in GLOBAL_ACHIEVEMENTS_REGISTRY.registry
+        for a in expected_scoring_achievements & expected_non_scoring_achievements
     )

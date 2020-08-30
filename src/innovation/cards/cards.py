@@ -1,8 +1,52 @@
-from src.innovation.utils.registry import ImmutableRegistry, Registerable
-from src.innovation.cards.card_properties import Symbol, Color, SymbolType, Position, SplayDirection
-from src.innovation.cards.card_effects import BaseDemand, BaseDogma
+from __future__ import annotations
+from src.innovation.utils.registry import Registerable
 from dataclasses import dataclass
-from typing import List, Union, Deque
+from enum import Enum, unique
+from typing import List, Deque, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.innovation.cards.card_effects import BaseEffect
+
+
+@unique
+class Color(Enum):
+    RED = 1
+    YELLOW = 2
+    GREEN = 3
+    BLUE = 4
+    PURPLE = 5
+
+
+@unique
+class SymbolType(Enum):
+    LEAF = 1
+    CROWN = 2
+    LIGHT_BULB = 3
+    CASTLE = 4
+    FACTORY = 5
+    CLOCK = 6
+
+
+@unique
+class Position(Enum):
+    TOP_LEFT = 1
+    BOTTOM_LEFT = 2
+    BOTTOM_MIDDLE = 3
+    BOTTOM_RIGHT = 4
+
+
+@unique
+class SplayDirection(Enum):
+    NONE = 1
+    LEFT = 2
+    RIGHT = 3
+    UP = 4
+
+
+@dataclass
+class Symbol:
+    symbol_type: SymbolType
+    position: Position
 
 
 @dataclass(frozen=True)
@@ -10,7 +54,7 @@ class Card(Registerable):
     color: Color
     age: int
     symbols: List[Symbol]
-    effects: List[Union[BaseDogma, BaseDemand]]
+    effects: List[BaseEffect]
 
     def __hash__(self):
         return super().__hash__()
@@ -20,44 +64,3 @@ class Card(Registerable):
 class CardStack:
     stack: Deque[Card]
     splay: SplayDirection
-
-
-GLOBAL_CARD_REGISTRY = ImmutableRegistry(
-    [
-        Card(
-            name="Archery",
-            color=Color.RED,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
-                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT)
-            ],
-            effects=[]
-        ),
-        Card(
-            name="Sailing",
-            color=Color.GREEN,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CROWN, Position.TOP_LEFT),
-                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT)
-            ],
-            effects=[]
-        ),
-        Card(
-            name="The Wheel",
-            color=Color.GREEN,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT)
-            ],
-            effects=[]
-        )
-    ]
-)
-
-

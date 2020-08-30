@@ -1,5 +1,5 @@
-from src.innovation.cards.cards import Card, CardStack
-from src.innovation.cards.card_properties import Color, SplayDirection
+from src.innovation.cards.achievements import Achievement
+from src.innovation.cards.cards import Card, CardStack, Color, SplayDirection
 from collections import deque
 from dataclasses import dataclass
 from typing import Set, Dict
@@ -10,6 +10,7 @@ class Player:
     board: Dict[Color, CardStack]
     hand: Set[Card]
     score_pile: Set[Card]
+    achievements: Set[Achievement]
 
     @property
     def score(self) -> int:

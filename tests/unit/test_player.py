@@ -1,20 +1,15 @@
-from src.innovation.cards.cards import GLOBAL_CARD_REGISTRY
+from src.innovation.cards.card_registry import GLOBAL_CARD_REGISTRY
 from src.innovation.players.players import Player
 import pytest
 
 
-@pytest.mark.parametrize("card_names", [
-    ["Archery"],
-    ["Archery", "Sailing"],
-    ["Sailing", "The Wheel"]
-])
+@pytest.mark.parametrize(
+    "card_names", [["Archery"], ["Archery", "Sailing"], ["Sailing", "The Wheel"]]
+)
 def test_player_board_valid_melds(card_names):
     # Given
-    cards = [
-        GLOBAL_CARD_REGISTRY.registry.get(card_name)
-        for card_name in card_names
-    ]
-    player = Player(dict(), set(cards), set())
+    cards = [GLOBAL_CARD_REGISTRY.registry.get(card_name) for card_name in card_names]
+    player = Player(dict(), set(cards), set(), set())
     assert all(card in player.hand for card in cards)
 
     # When
