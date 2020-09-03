@@ -1,6 +1,13 @@
 from src.innovation.utils.registry import ImmutableRegistry
 from src.innovation.cards.achievement_registry import GLOBAL_ACHIEVEMENTS_REGISTRY
-from src.innovation.cards.cards import Card, Color, Symbol, SymbolType, Position, SplayDirection
+from src.innovation.cards.cards import (
+    Card,
+    Color,
+    Symbol,
+    SymbolType,
+    Position,
+    SplayDirection,
+)
 from src.innovation.cards.card_effects import (
     BaseDemand,
     BaseDogma,
@@ -12,7 +19,7 @@ from src.innovation.cards.card_effects import (
     Return,
     Optional,
     Tuck,
-    Splay
+    Splay,
 )
 from src.innovation.game.gamestate import GameState
 from src.innovation.players.players import Player
@@ -25,7 +32,7 @@ class ArcheryDemand(BaseDemand):
         return SymbolType.CASTLE
 
     @staticmethod
-    def transfer_card_rule(_, __, target_player: Player):
+    def transfer_card_rule(_, __, target_player: Player) -> Set[Card]:
         if len(target_player.hand) == 0:
             allowed_cards = set()
         else:
@@ -79,7 +86,7 @@ class MetalWorkingDogma(BaseDogma):
             draw_location=MetalWorkingDogma.draw_location,
             repeat_effect=MetalWorkingDogma.repeat_effect,
             level=1,
-            reveal=True
+            reveal=True,
         )
 
 
@@ -105,8 +112,8 @@ class OarsDemand(BaseDemand):
             on_completion=lambda _: Draw(
                 target_player=target_player,
                 draw_location=lambda _: CardLocation.HAND,
-                level=1
-            )
+                level=1,
+            ),
         )
 
 
@@ -125,7 +132,7 @@ class AgricultureDogma(BaseDogma):
                 on_completion=lambda cards: Draw(
                     target_player=activating_player,
                     draw_location=lambda _: CardLocation.SCORE_PILE,
-                    level=list(cards)[0].age+1
+                    level=list(cards)[0].age + 1,
                 ),
             )
         )
@@ -151,8 +158,8 @@ class DomesticationDogma(BaseDogma):
             on_completion=lambda _: Draw(
                 target_player=activating_player,
                 draw_location=lambda _: CardLocation.HAND,
-                level=1
-            )
+                level=1,
+            ),
         )
 
 
@@ -173,9 +180,11 @@ class MasonryDogma(BaseDogma):
                 min_cards=1,
                 max_cards=None,
                 allowed_cards=lambda _: {
-                    card for card in activating_player.hand if SymbolType.CASTLE in card.symbols
+                    card
+                    for card in activating_player.hand
+                    if SymbolType.CASTLE in card.symbols
                 },
-                on_completion=MasonryDogma.on_completion
+                on_completion=MasonryDogma.on_completion,
             )
         )
 
@@ -189,14 +198,14 @@ class ClothingDogma1(BaseDogma):
     def allowed_cards(_, activating_player: Player, __) -> Set[Card]:
         colors_with_cards = activating_player.colors_with_cards
         return {
-            card for card in activating_player.hand if card.color not in colors_with_cards
+            card
+            for card in activating_player.hand
+            if card.color not in colors_with_cards
         }
 
     @staticmethod
     def dogma_effect(_, activating_player: Player):
-        return Meld(
-            allowed_cards=ClothingDogma1.allowed_cards
-        )
+        return Meld(allowed_cards=ClothingDogma1.allowed_cards)
 
 
 class ClothingDogma2(BaseDogma):
@@ -207,9 +216,9 @@ class ClothingDogma2(BaseDogma):
     @staticmethod
     def dogma_effect(game_state: GameState, activating_player: Player):
         colors_on_board = activating_player.colors_with_cards
-        colors_on_other_boards = set().union(*[
-            player.colors_with_cards for player in game_state.players
-        ])
+        colors_on_other_boards = set().union(
+            *[player.colors_with_cards for player in game_state.players]
+        )
 
         num_unique_colors = len(colors_on_board - colors_on_other_boards)
 
@@ -217,7 +226,7 @@ class ClothingDogma2(BaseDogma):
             target_player=activating_player,
             draw_location=lambda _: CardLocation.SCORE_PILE,
             level=1,
-            num_cards=num_unique_colors
+            num_cards=num_unique_colors,
         )
 
 
@@ -229,7 +238,9 @@ class SailingDogma(BaseDogma):
     @staticmethod
     def dogma_effect(_, activating_player: Player):
         return Draw(
-            target_player=activating_player, draw_location=lambda _: CardLocation.BOARD, level=1
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.BOARD,
+            level=1,
         )
 
 
@@ -245,10 +256,8 @@ class WheelDogma(BaseDogma):
             draw_location=lambda _: CardLocation.HAND,
             level=1,
             on_completion=lambda _: Draw(
-                activating_player,
-                draw_location=lambda _: CardLocation.HAND,
-                level=1
-            )
+                activating_player, draw_location=lambda _: CardLocation.HAND, level=1
+            ),
         )
 
 
@@ -268,7 +277,7 @@ class PotteryDogma1(BaseDogma):
                     target_player=activating_player,
                     draw_location=lambda _: CardLocation.SCORE_PILE,
                     level=len(cards),
-                )
+                ),
             )
         )
 
@@ -283,7 +292,7 @@ class PotteryDogma2(BaseDogma):
         return Draw(
             target_player=activating_player,
             draw_location=lambda _: CardLocation.HAND,
-            level=1
+            level=1,
         )
 
 
@@ -302,8 +311,8 @@ class ToolsDogma1(BaseDogma):
                 on_completion=lambda _: Draw(
                     target_player=activating_player,
                     draw_location=lambda _: CardLocation.BOARD,
-                    level=3
-                )
+                    level=3,
+                ),
             )
         )
 
@@ -326,8 +335,8 @@ class ToolsDogma2(BaseDogma):
                     target_player=activating_player,
                     draw_location=lambda _: CardLocation.HAND,
                     level=1,
-                    num_cards=3
-                )
+                    num_cards=3,
+                ),
             )
         )
 
@@ -342,7 +351,7 @@ class WritingDogma(BaseDogma):
         return Draw(
             target_player=activating_player,
             draw_location=lambda _: CardLocation.HAND,
-            level=2
+            level=2,
         )
 
 
@@ -364,8 +373,8 @@ class CodeOfLawsDogma(BaseDogma):
                 on_completion=lambda cards: Splay(
                     target_player=activating_player,
                     allowed_colors={card.color for card in cards},
-                    allowed_directions={SplayDirection.LEFT}
-                )
+                    allowed_directions={SplayDirection.LEFT},
+                ),
             )
         )
 
@@ -393,13 +402,17 @@ class MysticismDogma(BaseDogma):
 
         return Draw(
             target_player=activating_player,
-            draw_location=lambda cards: CardLocation.BOARD if any(card.color in colors_on_board for card in cards) else CardLocation.HAND,
+            draw_location=lambda cards: CardLocation.BOARD
+            if any(card.color in colors_on_board for card in cards)
+            else CardLocation.HAND,
             level=1,
             on_completion=lambda cards: Draw(
                 target_player=activating_player,
                 draw_location=lambda _: CardLocation.HAND,
-                level=1
-            ) if any(card.color in colors_on_board for card in cards) else None
+                level=1,
+            )
+            if any(card.color in colors_on_board for card in cards)
+            else None,
         )
 
 

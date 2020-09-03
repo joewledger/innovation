@@ -30,9 +30,9 @@ class Player:
     @property
     def colors_with_cards(self) -> Set[Color]:
         return {
-            color for color in self.board.keys()
-            if color in self.board
-            and not self.board[color].is_empty()
+            color
+            for color in self.board.keys()
+            if color in self.board and not self.board[color].is_empty()
         }
 
     def meld(self, card: Card):

@@ -72,7 +72,9 @@ class Draw(Primitive):
     repeat_effect: Callable[[Set[Card]], bool] = None
     level: int = None
     num_cards: int = 1
-    on_completion: Callable[[Set[Card]], Union[Primitive, SequenceOperator, None]] = None
+    on_completion: Callable[
+        [Set[Card]], Union[Primitive, SequenceOperator, None]
+    ] = None
     reveal: bool = False
 
 
@@ -81,7 +83,9 @@ class Return(Prompt):
     allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
     min_cards: int
     max_cards: int
-    on_completion: Callable[[Set[Card]], Union[Primitive, SequenceOperator, None]] = None
+    on_completion: Callable[
+        [Set[Card]], Union[Primitive, SequenceOperator, None]
+    ] = None
 
 
 @dataclass
@@ -89,7 +93,9 @@ class Meld(Primitive):
     allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
     min_cards: int = 1
     max_cards: Union[int, None] = 1
-    on_completion: Callable[[Set[Card]], Union[Primitive, SequenceOperator, None]] = None
+    on_completion: Callable[
+        [Set[Card]], Union[Primitive, SequenceOperator, None]
+    ] = None
 
 
 @dataclass
@@ -102,7 +108,9 @@ class Tuck(Primitive):
     allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
     min_cards: int = 1
     max_cards: int = 1
-    on_completion: Callable[[Set[Card]], Union[Primitive, SequenceOperator, None]] = None
+    on_completion: Callable[
+        [Set[Card]], Union[Primitive, SequenceOperator, None]
+    ] = None
 
 
 @dataclass
@@ -120,4 +128,6 @@ class TransferCard(Primitive):
     allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
     card_location: CardLocation
     card_destination: CardLocation
-    on_completion: Callable[[Set[Card]], Union[Primitive, SequenceOperator, None]] = None
+    on_completion: Callable[
+        [Set[Card]], Union[Primitive, SequenceOperator, None]
+    ] = None
