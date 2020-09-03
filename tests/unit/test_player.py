@@ -35,25 +35,31 @@ def test_player_board_valid_melds(card_names):
     assert all(card not in player.hand for card in cards)
 
 
-@pytest.mark.parametrize("score_pile_cards, expected_score", [
-    ([], 0),
-    ([Mock(age=2)], 2),
-    ([Mock(age=2), Mock(age=6)], 8),
-    ([Mock(age=n) for n in range(10)], 45)
-])
+@pytest.mark.parametrize(
+    "score_pile_cards, expected_score",
+    [
+        ([], 0),
+        ([Mock(age=2)], 2),
+        ([Mock(age=2), Mock(age=6)], 8),
+        ([Mock(age=n) for n in range(10)], 45),
+    ],
+)
 def test_player_score(score_pile_cards, expected_score):
     player = Player({}, set(), set(score_pile_cards), set())
     assert player.score == expected_score
 
 
-@pytest.mark.parametrize("cards, expected_max_age", [
-    ([], 1),
-    ([Mock(color=Color.GREEN, age=2)], 2),
-    ([Mock(color=Color.RED, age=5)], 5),
-    ([Mock(color=Color.GREEN, age=2), Mock(color=Color.RED, age=5)], 5),
-    ([Mock(color=Color.RED, age=2), Mock(color=Color.RED, age=5)], 5),
-    ([Mock(color=Color.RED, age=5), Mock(color=Color.RED, age=2)], 2)
-])
+@pytest.mark.parametrize(
+    "cards, expected_max_age",
+    [
+        ([], 1),
+        ([Mock(color=Color.GREEN, age=2)], 2),
+        ([Mock(color=Color.RED, age=5)], 5),
+        ([Mock(color=Color.GREEN, age=2), Mock(color=Color.RED, age=5)], 5),
+        ([Mock(color=Color.RED, age=2), Mock(color=Color.RED, age=5)], 5),
+        ([Mock(color=Color.RED, age=5), Mock(color=Color.RED, age=2)], 2),
+    ],
+)
 def test_player_max_age_cards(cards, expected_max_age):
     player = Player({}, set(cards), set(), set())
     for card in cards:

@@ -1,15 +1,22 @@
 from src.innovation.utils.registry import ImmutableRegistry
-from src.innovation.cards.cards import Card, Color, Symbol, SymbolType, Position
+from src.innovation.cards.achievement_registry import GLOBAL_ACHIEVEMENTS_REGISTRY
+from src.innovation.cards.cards import Card, Color, Symbol, SymbolType, Position, SplayDirection
 from src.innovation.cards.card_effects import (
-    And,
     BaseDemand,
     BaseDogma,
+    Achieve,
     Draw,
-    DrawLocation,
+    CardLocation,
     TransferCard,
+    Meld,
+    Return,
+    Optional,
+    Tuck,
+    Splay
 )
 from src.innovation.game.gamestate import GameState
 from src.innovation.players.players import Player
+from typing import Set, Union
 
 
 class ArcheryDemand(BaseDemand):
@@ -35,21 +42,182 @@ class ArcheryDemand(BaseDemand):
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
     ):
-        return And(
-            [
-                Draw(
-                    target_player=target_player,
-                    draw_location=DrawLocation.HAND,
-                    level=1,
+        return Draw(
+            target_player=target_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=1,
+            on_completion=lambda _: TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=ArcheryDemand.transfer_card_rule,
+                card_location=CardLocation.HAND,
+                card_destination=CardLocation.HAND,
+            ),
+        )
+
+
+class MetalWorkingDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def draw_location(cards: Set[Card]) -> CardLocation:
+        if any(SymbolType.CASTLE in card.symbols for card in cards):
+            return CardLocation.SCORE_PILE
+        else:
+            return CardLocation.HAND
+
+    @staticmethod
+    def repeat_effect(cards: Set[Card]) -> bool:
+        return any(SymbolType.CASTLE in card.symbols for card in cards)
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Draw(
+            target_player=activating_player,
+            draw_location=MetalWorkingDogma.draw_location,
+            repeat_effect=MetalWorkingDogma.repeat_effect,
+            level=1,
+            reveal=True
+        )
+
+
+class OarsDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def transfer_card_rule(_, __, target_player: Player) -> Set[Card]:
+        return {card for card in target_player.hand if SymbolType.CROWN in card.symbols}
+
+    @staticmethod
+    def demand_effect(
+        game_state: GameState, activating_player: Player, target_player: Player
+    ):
+        return TransferCard(
+            giving_player=target_player,
+            receiving_player=activating_player,
+            allowed_cards=OarsDemand.transfer_card_rule,
+            card_location=CardLocation.HAND,
+            card_destination=CardLocation.SCORE_PILE,
+            on_completion=lambda _: Draw(
+                target_player=target_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1
+            )
+        )
+
+
+class AgricultureDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Optional(
+            Return(
+                allowed_cards=lambda _: activating_player.hand,
+                min_cards=1,
+                max_cards=1,
+                on_completion=lambda cards: Draw(
+                    target_player=activating_player,
+                    draw_location=lambda _: CardLocation.SCORE_PILE,
+                    level=list(cards)[0].age+1
                 ),
-                TransferCard(
-                    giving_player=target_player,
-                    receiving_player=activating_player,
-                    allowed_cards=ArcheryDemand.transfer_card_rule,
-                    card_location=target_player.hand,
-                    card_destination=activating_player.hand,
-                ),
-            ]
+            )
+        )
+
+
+class DomesticationDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def allowed_cards(_, activating_player: Player, __) -> Set[Card]:
+        if not activating_player.hand:
+            return set()
+
+        min_age = min(card.age for card in activating_player.hand)
+        return {card for card in activating_player.hand if card.age == min_age}
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Meld(
+            allowed_cards=DomesticationDogma.allowed_cards,
+            on_completion=lambda _: Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1
+            )
+        )
+
+
+class MasonryDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def on_completion(cards: Set[Card]) -> Union[Achieve, None]:
+        if len(cards) >= 4:
+            return GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Monument")
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Optional(
+            Meld(
+                min_cards=1,
+                max_cards=None,
+                allowed_cards=lambda _: {
+                    card for card in activating_player.hand if SymbolType.CASTLE in card.symbols
+                },
+                on_completion=MasonryDogma.on_completion
+            )
+        )
+
+
+class ClothingDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def allowed_cards(_, activating_player: Player, __) -> Set[Card]:
+        colors_with_cards = activating_player.colors_with_cards
+        return {
+            card for card in activating_player.hand if card.color not in colors_with_cards
+        }
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Meld(
+            allowed_cards=ClothingDogma1.allowed_cards
+        )
+
+
+class ClothingDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(game_state: GameState, activating_player: Player):
+        colors_on_board = activating_player.colors_with_cards
+        colors_on_other_boards = set().union(*[
+            player.colors_with_cards for player in game_state.players
+        ])
+
+        num_unique_colors = len(colors_on_board - colors_on_other_boards)
+
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.SCORE_PILE,
+            level=1,
+            num_cards=num_unique_colors
         )
 
 
@@ -61,7 +229,7 @@ class SailingDogma(BaseDogma):
     @staticmethod
     def dogma_effect(_, activating_player: Player):
         return Draw(
-            target_player=activating_player, draw_location=DrawLocation.BOARD, level=1
+            target_player=activating_player, draw_location=lambda _: CardLocation.BOARD, level=1
         )
 
 
@@ -72,11 +240,166 @@ class WheelDogma(BaseDogma):
 
     @staticmethod
     def dogma_effect(_, activating_player: Player):
-        return And(
-            [
-                Draw(activating_player, draw_location=DrawLocation.HAND, level=1),
-                Draw(activating_player, draw_location=DrawLocation.HAND, level=1),
-            ]
+        return Draw(
+            activating_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=1,
+            on_completion=lambda _: Draw(
+                activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1
+            )
+        )
+
+
+class PotteryDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Optional(
+            Return(
+                allowed_cards=lambda _: activating_player.hand,
+                min_cards=1,
+                max_cards=3,
+                on_completion=lambda cards: Draw(
+                    target_player=activating_player,
+                    draw_location=lambda _: CardLocation.SCORE_PILE,
+                    level=len(cards),
+                )
+            )
+        )
+
+
+class PotteryDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=1
+        )
+
+
+class ToolsDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Optional(
+            Return(
+                allowed_cards=lambda _: activating_player.hand,
+                min_cards=3,
+                max_cards=3,
+                on_completion=lambda _: Draw(
+                    target_player=activating_player,
+                    draw_location=lambda _: CardLocation.BOARD,
+                    level=3
+                )
+            )
+        )
+
+
+class ToolsDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Optional(
+            Return(
+                allowed_cards=lambda _: {
+                    card for card in activating_player.hand if card.age == 3
+                },
+                min_cards=1,
+                max_cards=1,
+                on_completion=lambda _: Draw(
+                    target_player=activating_player,
+                    draw_location=lambda _: CardLocation.HAND,
+                    level=1,
+                    num_cards=3
+                )
+            )
+        )
+
+
+class WritingDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=2
+        )
+
+
+class CodeOfLawsDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        colors_on_board = activating_player.colors_with_cards
+        allowed_cards = {
+            card for card in activating_player.hand if card.color in colors_on_board
+        }
+
+        return Optional(
+            Tuck(
+                allowed_cards=lambda _: allowed_cards,
+                on_completion=lambda cards: Splay(
+                    target_player=activating_player,
+                    allowed_colors={card.color for card in cards},
+                    allowed_directions={SplayDirection.LEFT}
+                )
+            )
+        )
+
+
+class CityStatesDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def demand_effect(
+        game_state: GameState, activating_player: Player, target_player: Player
+    ):
+        pass
+
+
+class MysticismDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player):
+        colors_on_board = activating_player.colors_with_cards
+
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda cards: CardLocation.BOARD if any(card.color in colors_on_board for card in cards) else CardLocation.HAND,
+            level=1,
+            on_completion=lambda cards: Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1
+            ) if any(card.color in colors_on_board for card in cards) else None
         )
 
 

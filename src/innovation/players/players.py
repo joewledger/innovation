@@ -22,9 +22,18 @@ class Player:
             return 1
 
         return max(
-            card_stack.top_card.age for card_stack in self.board.values()
+            card_stack.top_card.age
+            for card_stack in self.board.values()
             if card_stack.top_card
         )
+
+    @property
+    def colors_with_cards(self) -> Set[Color]:
+        return {
+            color for color in self.board.keys()
+            if color in self.board
+            and not self.board[color].is_empty()
+        }
 
     def meld(self, card: Card):
         color = card.color
