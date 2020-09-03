@@ -96,25 +96,26 @@ class OarsDemand(BaseDemand):
         return SymbolType.CASTLE
 
     @staticmethod
-    def transfer_card_rule(_, __, target_player: Player) -> Set[Card]:
-        return {card for card in target_player.hand if SymbolType.CROWN in card.symbols}
-
-    @staticmethod
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
-    ):
-        return TransferCard(
-            giving_player=target_player,
-            receiving_player=activating_player,
-            allowed_cards=OarsDemand.transfer_card_rule,
-            card_location=CardLocation.HAND,
-            card_destination=CardLocation.SCORE_PILE,
-            on_completion=lambda _: Draw(
-                target_player=target_player,
-                draw_location=lambda _: CardLocation.HAND,
-                level=1,
-            ),
-        )
+    ) -> Union[TransferCard, None]:
+        transferable_cards = {
+            card for card in target_player.hand if SymbolType.CROWN in card.symbols
+        }
+
+        if transferable_cards:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: transferable_cards,
+                card_location=CardLocation.HAND,
+                card_destination=CardLocation.SCORE_PILE,
+                on_completion=lambda _: Draw(
+                    target_player=target_player,
+                    draw_location=lambda _: CardLocation.HAND,
+                    level=1,
+                ),
+            )
 
 
 class AgricultureDogma(BaseDogma):

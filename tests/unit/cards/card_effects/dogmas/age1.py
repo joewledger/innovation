@@ -1,7 +1,10 @@
-from src.innovation.cards.card_registry import ArcheryDemand, CityStatesDemand
-from src.innovation.cards.cards import SymbolType, CardStack, Color, Symbol, Position
+from src.innovation.cards.card_registry import (
+    ArcheryDemand,
+    CityStatesDemand,
+    OarsDemand,
+)
+from src.innovation.cards.cards import SymbolType, Symbol, Position
 from src.innovation.cards.card_effects import Draw, CardLocation, TransferCard
-from src.innovation.players.players import Player
 from mock import Mock
 import pytest
 
@@ -38,6 +41,56 @@ def test_archery_demand():
 
     assert on_completion_effect.card_location == CardLocation.HAND
     assert on_completion_effect.card_destination == CardLocation.HAND
+
+
+@pytest.mark.parametrize(
+    "target_player_transferable_hand, target_player_non_transferable_hand, should_transfer",
+    [
+        (set(), set(), False),
+        (
+            set(),
+            {Mock(symbols=[Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT)])},
+            False,
+        ),
+        ({Mock(symbols=[Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT)])}, set(), True),
+    ],
+)
+def test_oars_demand(
+    target_player_transferable_hand,
+    target_player_non_transferable_hand,
+    should_transfer,
+):
+    oars_demand = OarsDemand()
+    assert oars_demand.symbol == SymbolType.CASTLE
+
+    game_state = Mock()
+    target_player = Mock(
+        hand=target_player_transferable_hand.union(target_player_non_transferable_hand)
+    )
+    activating_player = Mock()
+
+    effect = oars_demand.demand_effect(game_state, activating_player, target_player)
+    if not should_transfer:
+        assert effect is None
+    else:
+        transferred_card = Mock()
+
+        assert effect.giving_player == target_player
+        assert effect.receiving_player == activating_player
+        assert (
+            effect.allowed_cards(game_state, activating_player, target_player)
+            == target_player_transferable_hand
+        )
+        assert effect.card_location == CardLocation.HAND
+        assert effect.card_destination == CardLocation.SCORE_PILE
+
+        on_completion_effect = effect.on_completion(transferred_card)
+        assert isinstance(on_completion_effect, Draw)
+
+        drawn_card = Mock()
+        assert on_completion_effect.target_player == target_player
+        assert on_completion_effect.draw_location(drawn_card) == CardLocation.HAND
+        assert on_completion_effect.level == 1
 
 
 @pytest.mark.parametrize(
@@ -122,7 +175,7 @@ def test_city_states_demand(
     if not should_transfer:
         assert effect is None
     else:
-        transfered_card = Mock()
+        transferred_card = Mock()
         drawn_card = Mock()
 
         assert isinstance(effect, TransferCard)
@@ -136,7 +189,7 @@ def test_city_states_demand(
         assert effect.card_location == CardLocation.BOARD
         assert effect.card_destination == CardLocation.BOARD
 
-        on_completion_effect = effect.on_completion(transfered_card)
+        on_completion_effect = effect.on_completion(transferred_card)
         assert isinstance(on_completion_effect, Draw)
         assert on_completion_effect.target_player == target_player
         assert on_completion_effect.draw_location(drawn_card) == CardLocation.HAND
