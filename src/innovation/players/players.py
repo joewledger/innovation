@@ -23,15 +23,17 @@ class Player:
         return sum(card.age for card in self.score_pile)
 
     @property
+    def top_cards(self) -> Set[Card]:
+        return {
+            card_stack.top_card for card_stack in self.board.values() if not card_stack.is_empty
+        }
+
+    @property
     def max_age_top_card(self) -> int:
-        if all(card_stack.is_empty for card_stack in self.board.values()):
+        if len(self.top_cards) == 0:
             return 1
 
-        return max(
-            card_stack.top_card.age
-            for card_stack in self.board.values()
-            if card_stack.top_card
-        )
+        return max(top_card.age for top_card in self.top_cards)
 
     @property
     def colors_with_cards(self) -> Set[Color]:

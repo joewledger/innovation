@@ -370,11 +370,13 @@ class CodeOfLawsDogma(BaseDogma):
         return Optional(
             Tuck(
                 allowed_cards=lambda _: allowed_cards,
-                on_completion=lambda cards: Splay(
-                    target_player=activating_player,
-                    allowed_colors={card.color for card in cards},
-                    allowed_directions={SplayDirection.LEFT},
-                ),
+                on_completion=lambda cards: Optional(
+                    Splay(
+                        target_player=activating_player,
+                        allowed_colors={card.color for card in cards},
+                        allowed_directions={SplayDirection.LEFT},
+                    )
+                )
             )
         )
 
@@ -387,8 +389,26 @@ class CityStatesDemand(BaseDemand):
     @staticmethod
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
-    ):
-        pass
+    ) -> Union[TransferCard, None]:
+        top_cards_with_castles = {
+            card for card in target_player.top_cards if any(
+                symbol.symbol_type == SymbolType.CASTLE for symbol in card.symbols
+            )
+        }
+
+        if target_player.symbol_count[SymbolType.CASTLE] >= 4 and top_cards_with_castles:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: top_cards_with_castles,
+                card_location=CardLocation.BOARD,
+                card_destination=CardLocation.BOARD,
+                on_completion=lambda _: Draw(
+                    target_player=target_player,
+                    draw_location=lambda _: CardLocation.HAND,
+                    level=1,
+                )
+            )
 
 
 class MysticismDogma(BaseDogma):

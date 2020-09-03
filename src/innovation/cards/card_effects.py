@@ -27,11 +27,14 @@ class Prompt:
     pass
 
 
+effect_building_blocks = Union[Primitive, SequenceOperator, Prompt, None]
+
+
 @dataclass
 class ReturnUntilPass(Prompt):
     max_cards: int
     card_criteria: Callable[[Card], bool]
-    post_effect: Callable[[Set[Card]], Union[Primitive, SequenceOperator]]
+    post_effect: Callable[[Set[Card]], effect_building_blocks]
 
 
 class BaseDogma(BaseEffect):
@@ -39,7 +42,7 @@ class BaseDogma(BaseEffect):
     @abstractmethod
     def dogma_effect(
         game_state: GameState, activating_player: Player
-    ) -> Union[Primitive, SequenceOperator, None]:
+    ) -> effect_building_blocks:
         pass
 
 
@@ -48,13 +51,13 @@ class BaseDemand(BaseEffect):
     @abstractmethod
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
-    ) -> Union[Primitive, SequenceOperator, None]:
+    ) -> effect_building_blocks:
         pass
 
 
 @dataclass
 class Optional(Prompt):
-    operation: Union[Prompt, Primitive, SequenceOperator]
+    operation: effect_building_blocks
 
 
 @unique
@@ -73,7 +76,7 @@ class Draw(Primitive):
     level: int = None
     num_cards: int = 1
     on_completion: Callable[
-        [Set[Card]], Union[Primitive, SequenceOperator, None]
+        [Set[Card]], effect_building_blocks
     ] = None
     reveal: bool = False
 
@@ -84,7 +87,7 @@ class Return(Prompt):
     min_cards: int
     max_cards: int
     on_completion: Callable[
-        [Set[Card]], Union[Primitive, SequenceOperator, None]
+        [Set[Card]], effect_building_blocks
     ] = None
 
 
@@ -94,7 +97,7 @@ class Meld(Primitive):
     min_cards: int = 1
     max_cards: Union[int, None] = 1
     on_completion: Callable[
-        [Set[Card]], Union[Primitive, SequenceOperator, None]
+        [Set[Card]], effect_building_blocks
     ] = None
 
 
@@ -109,7 +112,7 @@ class Tuck(Primitive):
     min_cards: int = 1
     max_cards: int = 1
     on_completion: Callable[
-        [Set[Card]], Union[Primitive, SequenceOperator, None]
+        [Set[Card]], effect_building_blocks
     ] = None
 
 
@@ -129,5 +132,5 @@ class TransferCard(Primitive):
     card_location: CardLocation
     card_destination: CardLocation
     on_completion: Callable[
-        [Set[Card]], Union[Primitive, SequenceOperator, None]
+        [Set[Card]], effect_building_blocks
     ] = None
