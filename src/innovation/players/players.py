@@ -1,5 +1,11 @@
 from src.innovation.cards.achievements import Achievement
-from src.innovation.cards.cards import Card, CardStack, Color, SplayDirection
+from src.innovation.cards.cards import (
+    Card,
+    CardStack,
+    Color,
+    SplayDirection,
+    SymbolType,
+)
 from collections import deque
 from dataclasses import dataclass
 from typing import Set, Dict
@@ -33,6 +39,16 @@ class Player:
             color
             for color in self.board.keys()
             if color in self.board and not self.board[color].is_empty()
+        }
+
+    @property
+    def symbol_count(self) -> Dict[SymbolType, int]:
+        card_stacks = self.board.values()
+        return {
+            symbol_type: sum(
+                stack.symbol_count.get(symbol_type, 0) for stack in card_stacks
+            )
+            for symbol_type in SymbolType
         }
 
     def meld(self, card: Card):

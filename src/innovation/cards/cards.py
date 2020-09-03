@@ -2,7 +2,7 @@ from __future__ import annotations
 from src.innovation.utils.registry import Registerable
 from dataclasses import dataclass
 from enum import Enum, unique
-from typing import List, Deque, TYPE_CHECKING
+from typing import List, Deque, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.innovation.cards.card_effects import BaseEffect
@@ -73,3 +73,38 @@ class CardStack:
     def top_card(self) -> Card:
         if not self.is_empty:
             return self.stack[-1]
+
+    @property
+    def symbol_count(self) -> Dict[SymbolType, int]:
+        symbols_to_count = []
+
+        # Mapping of splay direction to set of symbol positions which should be counted
+        symbol_count_rules = {
+            SplayDirection.NONE: set(),
+            SplayDirection.LEFT: {Position.BOTTOM_RIGHT},
+            SplayDirection.RIGHT: {Position.TOP_LEFT, Position.BOTTOM_LEFT},
+            SplayDirection.UP: {
+                Position.BOTTOM_LEFT,
+                Position.BOTTOM_MIDDLE,
+                Position.BOTTOM_RIGHT,
+            },
+        }
+
+        if not self.is_empty:
+            symbols_to_count.extend(self.top_card.symbols)
+
+        for card in list(self.stack)[:-1]:
+            symbols_to_count.extend(
+                [
+                    symbol
+                    for symbol in card.symbols
+                    if symbol.position in symbol_count_rules.get(self.splay, set())
+                ]
+            )
+
+        return {
+            symbol_type: sum(
+                1 for symbol in symbols_to_count if symbol.symbol_type == symbol_type
+            )
+            for symbol_type in SymbolType
+        }

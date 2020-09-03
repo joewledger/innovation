@@ -1,6 +1,14 @@
 from src.innovation.cards.card_registry import GLOBAL_CARD_REGISTRY
 from src.innovation.players.players import Player
-from src.innovation.cards.cards import Color
+from src.innovation.cards.cards import (
+    Color,
+    CardStack,
+    SplayDirection,
+    Symbol,
+    SymbolType,
+    Position,
+)
+from collections import deque
 import pytest
 from mock import Mock
 
@@ -66,3 +74,94 @@ def test_player_max_age_cards(cards, expected_max_age):
         player.meld(card)
 
     assert player.max_age_top_card == expected_max_age
+
+
+@pytest.mark.parametrize(
+    "board, expected_symbols",
+    [
+        ({}, {}),
+        (
+            {
+                Color.GREEN: CardStack(
+                    stack=deque(
+                        [
+                            Mock(
+                                symbols=[
+                                    Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                                    Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                                    Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+                                ]
+                            ),
+                            Mock(
+                                symbols=[
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+                                ]
+                            ),
+                        ]
+                    ),
+                    splay=SplayDirection.UP,
+                )
+            },
+            {SymbolType.CASTLE: 3, SymbolType.CROWN: 1, SymbolType.LEAF: 2},
+        ),
+        (
+            {
+                Color.GREEN: CardStack(
+                    stack=deque(
+                        [
+                            Mock(
+                                symbols=[
+                                    Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                                    Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                                    Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+                                ]
+                            ),
+                            Mock(
+                                symbols=[
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+                                ]
+                            ),
+                        ]
+                    ),
+                    splay=SplayDirection.UP,
+                ),
+                Color.BLUE: CardStack(
+                    stack=deque(
+                        [
+                            Mock(
+                                symbols=[
+                                    Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                                    Symbol(
+                                        SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE
+                                    ),
+                                    Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+                                ]
+                            ),
+                        ]
+                    ),
+                    splay=SplayDirection.NONE,
+                ),
+            },
+            {
+                SymbolType.CASTLE: 4,
+                SymbolType.CROWN: 1,
+                SymbolType.LEAF: 2,
+                SymbolType.LIGHT_BULB: 2,
+            },
+        ),
+    ],
+)
+def test_symbol_count(board, expected_symbols):
+    player = Player(board, set(), set(), set())
+    actual_symbols = player.symbol_count
+
+    for symbol, count in expected_symbols.items():
+        assert actual_symbols[symbol] == count
+
+    for symbol, count in actual_symbols.items():
+        if symbol not in expected_symbols:
+            assert count == 0
