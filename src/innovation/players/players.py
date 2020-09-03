@@ -25,7 +25,9 @@ class Player:
     @property
     def top_cards(self) -> Set[Card]:
         return {
-            card_stack.top_card for card_stack in self.board.values() if not card_stack.is_empty
+            card_stack.top_card
+            for card_stack in self.board.values()
+            if not card_stack.is_empty
         }
 
     @property
