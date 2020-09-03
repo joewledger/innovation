@@ -69,22 +69,25 @@ class MetalWorkingDogma(BaseDogma):
         return SymbolType.CASTLE
 
     @staticmethod
+    def has_castle(cards: Set[Card]) -> bool:
+        return any(
+            SymbolType.CASTLE in (symbol.symbol_type for symbol in card.symbols)
+            for card in cards
+        )
+
+    @staticmethod
     def draw_location(cards: Set[Card]) -> CardLocation:
-        if any(SymbolType.CASTLE in card.symbols for card in cards):
+        if MetalWorkingDogma.has_castle(cards):
             return CardLocation.SCORE_PILE
         else:
             return CardLocation.HAND
 
     @staticmethod
-    def repeat_effect(cards: Set[Card]) -> bool:
-        return any(SymbolType.CASTLE in card.symbols for card in cards)
-
-    @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Draw:
         return Draw(
             target_player=activating_player,
             draw_location=MetalWorkingDogma.draw_location,
-            repeat_effect=MetalWorkingDogma.repeat_effect,
+            repeat_effect=MetalWorkingDogma.has_castle,
             level=1,
             reveal=True,
         )
