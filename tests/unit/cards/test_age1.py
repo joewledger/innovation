@@ -10,6 +10,11 @@ from src.innovation.cards.card_registry import (
     ClothingDogma2,
     SailingDogma,
     WheelDogma,
+    PotteryDogma1,
+    PotteryDogma2,
+    ToolsDogma1,
+    ToolsDogma2,
+    WritingDogma,
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position, Color
 from src.innovation.cards.card_effects import (
@@ -23,6 +28,7 @@ from src.innovation.cards.card_effects import (
 )
 from mock import Mock
 import pytest
+from random import choice
 
 
 def test_archery_demand():
@@ -472,3 +478,57 @@ def test_wheel():
         effect.draw_location(Mock()) == draw2.draw_location(Mock()) == CardLocation.HAND
     )
     assert effect.level == draw2.level == 1
+
+
+@pytest.mark.parametrize(
+    "hand, num_cards_to_return",
+    [(set(), 0), ({Mock()}, 1), ({Mock() for _ in range(5)}, 3)],
+)
+def test_pottery_dogma1(hand, num_cards_to_return):
+    pottery = PotteryDogma1()
+    assert pottery.symbol == SymbolType.LEAF
+
+    activating_player = Mock(hand=hand)
+    effect = pottery.dogma_effect(Mock(), activating_player)
+
+    if not hand:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+
+        assert isinstance(operation, Return)
+        assert operation.allowed_cards(Mock(), activating_player, None) == hand
+        assert operation.min_cards == 1
+        assert operation.max_cards == 3
+
+        on_completion = operation.on_completion(set(list(hand)[:num_cards_to_return]))
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(Mock()) == CardLocation.SCORE_PILE
+        assert on_completion.level == num_cards_to_return
+
+
+def test_pottery_dogma2():
+    pottery = PotteryDogma2()
+    assert pottery.symbol == SymbolType.LEAF
+
+    activating_player = Mock()
+
+    effect = pottery.dogma_effect(Mock(), activating_player)
+    assert isinstance(effect, Draw)
+    assert effect.target_player == activating_player
+    assert effect.draw_location(Mock()) == CardLocation.HAND
+    assert effect.level == 1
+
+
+def test_tools_dogma1():
+    pass
+
+
+def test_tools_dogma2():
+    pass
+
+
+def test_writing():
+    pass

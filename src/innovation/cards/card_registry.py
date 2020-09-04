@@ -49,7 +49,7 @@ class ArcheryDemand(BaseDemand):
     @staticmethod
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
-    ):
+    ) -> Draw:
         return Draw(
             target_player=target_player,
             draw_location=lambda _: CardLocation.HAND,
@@ -199,7 +199,7 @@ class ClothingDogma1(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Union[Meld, None]:
         colors_with_cards = activating_player.colors_with_cards
         allowed_cards = {
             card
@@ -217,7 +217,9 @@ class ClothingDogma2(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def dogma_effect(game_state: GameState, activating_player: Player):
+    def dogma_effect(
+        game_state: GameState, activating_player: Player
+    ) -> Union[Draw, None]:
         colors_on_board = activating_player.colors_with_cards
         colors_on_other_boards = set().union(
             *[
@@ -244,7 +246,7 @@ class SailingDogma(BaseDogma):
         return SymbolType.CROWN
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Draw:
         return Draw(
             target_player=activating_player,
             draw_location=lambda _: CardLocation.BOARD,
@@ -258,7 +260,7 @@ class WheelDogma(BaseDogma):
         return SymbolType.CASTLE
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Draw:
         return Draw(
             target_player=activating_player,
             draw_location=lambda _: CardLocation.HAND,
@@ -277,19 +279,20 @@ class PotteryDogma1(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Optional(
-            Return(
-                allowed_cards=lambda _: activating_player.hand,
-                min_cards=1,
-                max_cards=3,
-                on_completion=lambda cards: Draw(
-                    target_player=activating_player,
-                    draw_location=lambda _: CardLocation.SCORE_PILE,
-                    level=len(cards),
-                ),
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.hand:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    min_cards=1,
+                    max_cards=3,
+                    on_completion=lambda cards: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.SCORE_PILE,
+                        level=len(cards),
+                    ),
+                )
             )
-        )
 
 
 class PotteryDogma2(BaseDogma):
@@ -298,7 +301,7 @@ class PotteryDogma2(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Draw:
         return Draw(
             target_player=activating_player,
             draw_location=lambda _: CardLocation.HAND,
