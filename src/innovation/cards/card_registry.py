@@ -7,6 +7,7 @@ from src.innovation.cards.cards import (
     SymbolType,
     Position,
     SplayDirection,
+    cards_with_symbol
 )
 from src.innovation.cards.card_effects import (
     BaseDemand,
@@ -70,10 +71,7 @@ class MetalWorkingDogma(BaseDogma):
 
     @staticmethod
     def has_castle(cards: Set[Card]) -> bool:
-        return any(
-            SymbolType.CASTLE in (symbol.symbol_type for symbol in card.symbols)
-            for card in cards
-        )
+        return len(cards_with_symbol(cards, SymbolType.CASTLE)) > 0
 
     @staticmethod
     def draw_location(cards: Set[Card]) -> CardLocation:
@@ -102,9 +100,7 @@ class OarsDemand(BaseDemand):
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
     ) -> Union[TransferCard, None]:
-        transferable_cards = {
-            card for card in target_player.hand if SymbolType.CROWN in card.symbols
-        }
+        transferable_cards = cards_with_symbol(target_player.hand, SymbolType.CROWN)
 
         if transferable_cards:
             return TransferCard(

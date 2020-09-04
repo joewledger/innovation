@@ -2,7 +2,7 @@ from __future__ import annotations
 from src.innovation.utils.registry import Registerable
 from dataclasses import dataclass
 from enum import Enum, unique
-from typing import List, Deque, Dict, TYPE_CHECKING
+from typing import List, Deque, Dict, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.innovation.cards.card_effects import BaseEffect
@@ -108,3 +108,9 @@ class CardStack:
             )
             for symbol_type in SymbolType
         }
+
+
+def cards_with_symbol(cards: Set[Card], symbol: SymbolType) -> Set[Card]:
+    return {
+        card for card in cards if symbol in (s.symbol_type for s in card.symbols)
+    }

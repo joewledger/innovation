@@ -2,6 +2,7 @@ from src.innovation.cards.card_registry import (
     ArcheryDemand,
     CityStatesDemand,
     OarsDemand,
+    MetalWorkingDogma
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position
 from src.innovation.cards.card_effects import Draw, CardLocation, TransferCard
@@ -194,3 +195,36 @@ def test_city_states_demand(
         assert on_completion_effect.target_player == target_player
         assert on_completion_effect.draw_location(drawn_card) == CardLocation.HAND
         assert on_completion_effect.level == 1
+
+
+@pytest.mark.parametrize(
+    "drawn_card, draw_location, should_repeat",
+    [
+        (
+            Mock(symbols=[Symbol(SymbolType.CASTLE, Position.TOP_LEFT)]),
+            CardLocation.SCORE_PILE,
+            True,
+        ),
+        (
+            Mock(symbols=[Symbol(SymbolType.LEAF, Position.TOP_LEFT)]),
+            CardLocation.HAND,
+            False,
+        ),
+    ],
+)
+def test_metalworking_dogma(drawn_card, draw_location, should_repeat):
+    metalworking = MetalWorkingDogma()
+    assert metalworking.symbol == SymbolType.CASTLE
+
+    game_state = Mock()
+    activating_player = Mock()
+
+    effect = metalworking.dogma_effect(game_state, activating_player)
+    assert isinstance(effect, Draw)
+    assert effect.target_player == activating_player
+    assert effect.draw_location({drawn_card}) == draw_location
+    assert effect.repeat_effect({drawn_card}) == should_repeat
+    assert effect.level == 1
+    assert effect.reveal is True
+    assert effect.num_cards == 1
+    assert effect.on_completion is None
