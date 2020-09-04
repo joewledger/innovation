@@ -4,10 +4,12 @@ from src.innovation.cards.card_registry import (
     OarsDemand,
     MetalWorkingDogma,
     AgricultureDogma,
+    DomesticationDogma
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position
 from src.innovation.cards.card_effects import (
     Draw,
+    Meld,
     CardLocation,
     TransferCard,
     Optional,
@@ -267,3 +269,51 @@ def test_agriculture(hand):
         assert on_completion_effect.target_player == activating_player
         assert on_completion_effect.draw_location(drawn_card) == CardLocation.SCORE_PILE
         assert on_completion_effect.level == returned_card.age + 1
+
+
+@pytest.mark.parametrize("hand", [
+    {},
+    {
+        Mock(age=1)
+    },
+    {
+        Mock(age=2),
+        Mock(age=3)
+    },
+    {
+        Mock(age=2),
+        Mock(age=2),
+        Mock(age=3)
+    }
+])
+def test_domestication(hand):
+    domestication = DomesticationDogma()
+
+    game_state = Mock()
+    activating_player = Mock(hand=hand)
+
+    effect = domestication.dogma_effect(game_state, activating_player)
+
+    def validate_draw(d: Draw):
+        drawn_card = Mock()
+
+        assert isinstance(d, Draw)
+        assert d.target_player == activating_player
+        assert d.draw_location(drawn_card) == CardLocation.HAND
+        assert d.level == 1
+
+    if not hand:
+        validate_draw(effect)
+    else:
+        assert isinstance(effect, Meld)
+
+        lowest_card = {
+            card for card in hand if card.age == min(hand, key=lambda c: c.age).age
+        }
+        assert effect.allowed_cards(game_state, activating_player, None) == lowest_card
+        assert effect.min_cards == 1
+        assert effect.max_cards == 1
+
+        melded_card = Mock()
+        draw = effect.on_completion(melded_card)
+        validate_draw(draw)

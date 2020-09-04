@@ -153,15 +153,20 @@ class DomesticationDogma(BaseDogma):
         return {card for card in activating_player.hand if card.age == min_age}
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Meld(
-            allowed_cards=DomesticationDogma.allowed_cards,
-            on_completion=lambda _: Draw(
-                target_player=activating_player,
-                draw_location=lambda _: CardLocation.HAND,
-                level=1,
-            ),
+    def dogma_effect(_, activating_player: Player) -> Union[Draw, Meld]:
+        draw = Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=1,
         )
+
+        if not activating_player.hand:
+            return draw
+        else:
+            return Meld(
+                allowed_cards=DomesticationDogma.allowed_cards,
+                on_completion=lambda _: draw
+            )
 
 
 class MasonryDogma(BaseDogma):
