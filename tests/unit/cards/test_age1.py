@@ -531,4 +531,12 @@ def test_tools_dogma2():
 
 
 def test_writing():
-    pass
+    writing = WritingDogma()
+    assert writing.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock()
+    effect = writing.dogma_effect(Mock(), activating_player)
+    assert isinstance(effect, Draw)
+    assert effect.target_player == activating_player
+    assert effect.draw_location(Mock()) == CardLocation.HAND
+    assert effect.level == 2
