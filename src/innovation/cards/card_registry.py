@@ -315,19 +315,20 @@ class ToolsDogma1(BaseDogma):
         return SymbolType.LIGHT_BULB
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Optional(
-            Return(
-                allowed_cards=lambda _: activating_player.hand,
-                min_cards=3,
-                max_cards=3,
-                on_completion=lambda _: Draw(
-                    target_player=activating_player,
-                    draw_location=lambda _: CardLocation.BOARD,
-                    level=3,
-                ),
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if len(activating_player.hand) >= 3:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    min_cards=3,
+                    max_cards=3,
+                    on_completion=lambda _: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.BOARD,
+                        level=3,
+                    ),
+                )
             )
-        )
 
 
 class ToolsDogma2(BaseDogma):
@@ -337,21 +338,22 @@ class ToolsDogma2(BaseDogma):
 
     @staticmethod
     def dogma_effect(_, activating_player: Player):
-        return Optional(
-            Return(
-                allowed_cards=lambda _: {
-                    card for card in activating_player.hand if card.age == 3
-                },
-                min_cards=1,
-                max_cards=1,
-                on_completion=lambda _: Draw(
-                    target_player=activating_player,
-                    draw_location=lambda _: CardLocation.HAND,
-                    level=1,
-                    num_cards=3,
-                ),
+        age_3_cards = {card for card in activating_player.hand if card.age == 3}
+
+        if age_3_cards:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: age_3_cards,
+                    min_cards=1,
+                    max_cards=1,
+                    on_completion=lambda _: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.HAND,
+                        level=1,
+                        num_cards=3,
+                    ),
+                )
             )
-        )
 
 
 class WritingDogma(BaseDogma):

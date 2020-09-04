@@ -522,12 +522,65 @@ def test_pottery_dogma2():
     assert effect.level == 1
 
 
-def test_tools_dogma1():
-    pass
+@pytest.mark.parametrize("hand_size", [1, 2, 3, 4])
+def test_tools_dogma1(hand_size):
+    tools = ToolsDogma1()
+    assert tools.symbol == SymbolType.LIGHT_BULB
+
+    hand = {Mock() for _ in range(hand_size)}
+    activating_player = Mock(hand=hand)
+
+    effect = tools.dogma_effect(Mock(), activating_player)
+
+    if hand_size < 3:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+
+        returned_cards = set(list(hand)[:3])
+        assert operation.allowed_cards(Mock(), activating_player, None) == hand
+        assert operation.min_cards == 3
+        assert operation.max_cards == 3
+
+        on_completion = operation.on_completion(returned_cards)
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(Mock()) == CardLocation.BOARD
+        assert on_completion.level == 3
 
 
-def test_tools_dogma2():
-    pass
+@pytest.mark.parametrize(
+    "hand",
+    [{}, {Mock(age=1)}, {Mock(age=3)}, {Mock(age=1), Mock(age=3)}, {Mock(age=4)}],
+)
+def test_tools_dogma2(hand):
+    tools = ToolsDogma2()
+    assert tools.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock(hand=hand)
+
+    effect = tools.dogma_effect(Mock(), activating_player)
+    age_3_cards = {card for card in activating_player.hand if card.age == 3}
+
+    if age_3_cards:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+
+        assert operation.allowed_cards(Mock(), activating_player, None) == age_3_cards
+        assert operation.min_cards == 1
+        assert operation.max_cards == 1
+
+        on_completion = operation.on_completion(Mock())
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(Mock()) == CardLocation.HAND
+        assert on_completion.level == 1
+        assert on_completion.num_cards == 3
 
 
 def test_writing():
