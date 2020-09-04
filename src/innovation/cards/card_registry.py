@@ -260,11 +260,13 @@ class WheelDogma(BaseDogma):
     @staticmethod
     def dogma_effect(_, activating_player: Player):
         return Draw(
-            activating_player,
+            target_player=activating_player,
             draw_location=lambda _: CardLocation.HAND,
             level=1,
             on_completion=lambda _: Draw(
-                activating_player, draw_location=lambda _: CardLocation.HAND, level=1
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1,
             ),
         )
 

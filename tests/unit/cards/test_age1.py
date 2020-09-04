@@ -8,6 +8,8 @@ from src.innovation.cards.card_registry import (
     MasonryDogma,
     ClothingDogma1,
     ClothingDogma2,
+    SailingDogma,
+    WheelDogma,
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position, Color
 from src.innovation.cards.card_effects import (
@@ -435,3 +437,38 @@ def test_clothing_dogma2(colors, opposing_player_colors, num_draws):
         assert effect.draw_location(drawn_card) == CardLocation.SCORE_PILE
         assert effect.level == 1
         assert effect.num_cards == num_draws
+
+
+def test_sailing():
+    sailing = SailingDogma()
+    assert sailing.symbol == SymbolType.CROWN
+
+    game_state = Mock()
+    activating_player = Mock()
+
+    effect = sailing.dogma_effect(game_state, activating_player)
+    assert isinstance(effect, Draw)
+
+    drawn_card = Mock()
+    assert effect.target_player == activating_player
+    assert effect.draw_location(drawn_card) == CardLocation.BOARD
+    assert effect.level == 1
+
+
+def test_wheel():
+    wheel = WheelDogma()
+    assert wheel.symbol == SymbolType.CASTLE
+
+    game_state = Mock()
+    activating_player = Mock()
+
+    effect = wheel.dogma_effect(game_state, activating_player)
+    assert isinstance(effect, Draw)
+    draw2 = effect.on_completion(Mock())
+    assert isinstance(draw2, Draw)
+
+    assert effect.target_player == draw2.target_player == activating_player
+    assert (
+        effect.draw_location(Mock()) == draw2.draw_location(Mock()) == CardLocation.HAND
+    )
+    assert effect.level == draw2.level == 1
