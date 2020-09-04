@@ -6,8 +6,10 @@ from src.innovation.cards.card_registry import (
     AgricultureDogma,
     DomesticationDogma,
     MasonryDogma,
+    ClothingDogma1,
+    ClothingDogma2,
 )
-from src.innovation.cards.cards import SymbolType, Symbol, Position
+from src.innovation.cards.cards import SymbolType, Symbol, Position, Color
 from src.innovation.cards.card_effects import (
     Draw,
     Meld,
@@ -360,3 +362,76 @@ def test_masonry(meldable_cards, non_meldable_cards):
             assert on_completion.achievement.name == "Monument"
         else:
             assert on_completion is None
+
+
+@pytest.mark.parametrize(
+    "allowed_meld, disallowed_meld, colors_with_cards",
+    [
+        (set(), set(), set()),
+        ({Mock(color=Color.RED)}, set(), set()),
+        ({Mock(color=Color.RED)}, {Mock(color=Color.YELLOW)}, {Color.YELLOW}),
+        (
+            set(),
+            {Mock(color=Color.YELLOW), Mock(color=Color.RED)},
+            {Color.YELLOW, Color.RED},
+        ),
+    ],
+)
+def test_clothing_dogma1(allowed_meld, disallowed_meld, colors_with_cards):
+    clothing = ClothingDogma1()
+    assert clothing.symbol == SymbolType.LEAF
+
+    hand = allowed_meld.union(disallowed_meld)
+
+    game_state = Mock()
+    activating_player = Mock(hand=hand, colors_with_cards=colors_with_cards)
+    effect = clothing.dogma_effect(game_state, activating_player)
+
+    if not allowed_meld:
+        assert effect is None
+    else:
+        assert isinstance(effect, Meld)
+        assert effect.min_cards == 1
+        assert effect.max_cards == 1
+        assert effect.allowed_cards(game_state, activating_player, None) == allowed_meld
+        assert effect.on_completion is None
+
+
+@pytest.mark.parametrize(
+    "colors, opposing_player_colors, num_draws",
+    [
+        (set(), [set()], 0),
+        ({Color.RED}, [set()], 1),
+        ({Color.RED, Color.YELLOW}, [set()], 2),
+        ({Color.RED, Color.YELLOW}, [{Color.RED}], 1),
+        ({Color.RED, Color.YELLOW}, [{Color.RED}, {Color.YELLOW}], 0),
+        (
+            {Color.RED, Color.YELLOW, Color.BLUE},
+            [{Color.RED, Color.YELLOW}, {Color.YELLOW}],
+            1,
+        ),
+    ],
+)
+def test_clothing_dogma2(colors, opposing_player_colors, num_draws):
+    clothing = ClothingDogma2()
+    assert clothing.symbol == SymbolType.LEAF
+
+    opposing_players = {
+        Mock(colors_with_cards=player_colors)
+        for player_colors in opposing_player_colors
+    }
+    activating_player = Mock(colors_with_cards=colors)
+
+    game_state = Mock(players=opposing_players | {activating_player})
+
+    effect = clothing.dogma_effect(game_state, activating_player)
+    if num_draws == 0:
+        assert effect is None
+    else:
+        assert isinstance(effect, Draw)
+        drawn_card = Mock()
+
+        assert effect.target_player == activating_player
+        assert effect.draw_location(drawn_card) == CardLocation.SCORE_PILE
+        assert effect.level == 1
+        assert effect.num_cards == num_draws

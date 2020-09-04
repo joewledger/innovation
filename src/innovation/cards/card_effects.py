@@ -120,4 +120,4 @@ class TransferCard(Primitive):
     allowed_cards: game_state_to_card_set_func
     card_location: CardLocation
     card_destination: CardLocation
-    on_completion: game_state_to_card_set_func = None
+    on_completion: card_set_to_effect_func = None

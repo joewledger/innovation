@@ -199,17 +199,16 @@ class ClothingDogma1(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def allowed_cards(_, activating_player: Player, __) -> Set[Card]:
+    def dogma_effect(_, activating_player: Player):
         colors_with_cards = activating_player.colors_with_cards
-        return {
+        allowed_cards = {
             card
             for card in activating_player.hand
             if card.color not in colors_with_cards
         }
 
-    @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Meld(allowed_cards=ClothingDogma1.allowed_cards)
+        if allowed_cards:
+            return Meld(allowed_cards=lambda _, __, ___: allowed_cards)
 
 
 class ClothingDogma2(BaseDogma):
@@ -221,17 +220,22 @@ class ClothingDogma2(BaseDogma):
     def dogma_effect(game_state: GameState, activating_player: Player):
         colors_on_board = activating_player.colors_with_cards
         colors_on_other_boards = set().union(
-            *[player.colors_with_cards for player in game_state.players]
+            *[
+                player.colors_with_cards
+                for player in game_state.players
+                if player != activating_player
+            ]
         )
 
         num_unique_colors = len(colors_on_board - colors_on_other_boards)
 
-        return Draw(
-            target_player=activating_player,
-            draw_location=lambda _: CardLocation.SCORE_PILE,
-            level=1,
-            num_cards=num_unique_colors,
-        )
+        if num_unique_colors > 0:
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.SCORE_PILE,
+                level=1,
+                num_cards=num_unique_colors,
+            )
 
 
 class SailingDogma(BaseDogma):
