@@ -88,7 +88,7 @@ class Return(Prompt):
 class Meld(Primitive):
     allowed_cards: game_state_to_card_set_func
     min_cards: int = 1
-    max_cards: Union[int, None] = 1
+    max_cards: Union[int] = 1
     on_completion: card_set_to_effect_func = None
 
 

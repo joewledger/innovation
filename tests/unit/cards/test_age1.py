@@ -4,12 +4,14 @@ from src.innovation.cards.card_registry import (
     OarsDemand,
     MetalWorkingDogma,
     AgricultureDogma,
-    DomesticationDogma
+    DomesticationDogma,
+    MasonryDogma,
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position
 from src.innovation.cards.card_effects import (
     Draw,
     Meld,
+    Achieve,
     CardLocation,
     TransferCard,
     Optional,
@@ -271,21 +273,15 @@ def test_agriculture(hand):
         assert on_completion_effect.level == returned_card.age + 1
 
 
-@pytest.mark.parametrize("hand", [
-    {},
-    {
-        Mock(age=1)
-    },
-    {
-        Mock(age=2),
-        Mock(age=3)
-    },
-    {
-        Mock(age=2),
-        Mock(age=2),
-        Mock(age=3)
-    }
-])
+@pytest.mark.parametrize(
+    "hand",
+    [
+        {},
+        {Mock(age=1)},
+        {Mock(age=2), Mock(age=3)},
+        {Mock(age=2), Mock(age=2), Mock(age=3)},
+    ],
+)
 def test_domestication(hand):
     domestication = DomesticationDogma()
 
@@ -317,3 +313,50 @@ def test_domestication(hand):
         melded_card = Mock()
         draw = effect.on_completion(melded_card)
         validate_draw(draw)
+
+
+@pytest.mark.parametrize(
+    "meldable_cards, non_meldable_cards",
+    [
+        (set(), set()),
+        (set(), {Mock(symbols=[Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT)])}),
+        ({Mock(symbols=[Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT)])}, set()),
+        (
+            {
+                Mock(symbols=[Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT)]),
+                Mock(symbols=[Symbol(SymbolType.CASTLE, Position.TOP_LEFT)]),
+                Mock(symbols=[Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE)]),
+                Mock(symbols=[Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT)]),
+            },
+            set(),
+        ),
+    ],
+)
+def test_masonry(meldable_cards, non_meldable_cards):
+    masonry = MasonryDogma()
+    assert masonry.symbol == SymbolType.CASTLE
+
+    hand = meldable_cards.union(non_meldable_cards)
+    game_state = Mock()
+    activating_player = Mock(hand=hand)
+
+    effect = masonry.dogma_effect(game_state, activating_player)
+    if not meldable_cards:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Meld)
+        assert operation.min_cards == 1
+        assert operation.max_cards == len(meldable_cards)
+        assert (
+            operation.allowed_cards(game_state, activating_player, None)
+            == meldable_cards
+        )
+
+        on_completion = operation.on_completion(meldable_cards)
+        if len(meldable_cards) >= 4:
+            assert isinstance(on_completion, Achieve)
+            assert on_completion.achievement.name == "Monument"
+        else:
+            assert on_completion is None

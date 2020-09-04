@@ -165,7 +165,7 @@ class DomesticationDogma(BaseDogma):
         else:
             return Meld(
                 allowed_cards=DomesticationDogma.allowed_cards,
-                on_completion=lambda _: draw
+                on_completion=lambda _: draw,
             )
 
 
@@ -177,22 +177,20 @@ class MasonryDogma(BaseDogma):
     @staticmethod
     def on_completion(cards: Set[Card]) -> Union[Achieve, None]:
         if len(cards) >= 4:
-            return GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Monument")
+            return Achieve(GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Monument"))
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Optional(
-            Meld(
-                min_cards=1,
-                max_cards=None,
-                allowed_cards=lambda _: {
-                    card
-                    for card in activating_player.hand
-                    if SymbolType.CASTLE in card.symbols
-                },
-                on_completion=MasonryDogma.on_completion,
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        meldable_cards = cards_with_symbol(activating_player.hand, SymbolType.CASTLE)
+        if meldable_cards:
+            return Optional(
+                Meld(
+                    min_cards=1,
+                    max_cards=len(meldable_cards),
+                    allowed_cards=lambda _, __, ___: meldable_cards,
+                    on_completion=MasonryDogma.on_completion,
+                )
             )
-        )
 
 
 class ClothingDogma1(BaseDogma):
