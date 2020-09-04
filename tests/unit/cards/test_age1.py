@@ -564,7 +564,7 @@ def test_tools_dogma2(hand):
     effect = tools.dogma_effect(Mock(), activating_player)
     age_3_cards = {card for card in activating_player.hand if card.age == 3}
 
-    if age_3_cards:
+    if not age_3_cards:
         assert effect is None
     else:
         assert isinstance(effect, Optional)
