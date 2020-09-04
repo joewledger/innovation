@@ -15,11 +15,21 @@ from src.innovation.cards.card_registry import (
     ToolsDogma1,
     ToolsDogma2,
     WritingDogma,
+    CodeOfLawsDogma,
+    MysticismDogma,
 )
-from src.innovation.cards.cards import SymbolType, Symbol, Position, Color
+from src.innovation.cards.cards import (
+    SymbolType,
+    Symbol,
+    Position,
+    Color,
+    SplayDirection,
+)
 from src.innovation.cards.card_effects import (
     Draw,
     Meld,
+    Tuck,
+    Splay,
     Achieve,
     CardLocation,
     TransferCard,
@@ -593,3 +603,73 @@ def test_writing():
     assert effect.target_player == activating_player
     assert effect.draw_location(Mock()) == CardLocation.HAND
     assert effect.level == 2
+
+
+@pytest.mark.parametrize(
+    "hand, colors_with_cards",
+    [
+        (set(), set()),
+        ({Mock(color=Color.RED)}, set()),
+        ({Mock(color=Color.YELLOW)}, {Color.RED}),
+        ({Mock(color=Color.YELLOW), Mock(color=Color.RED)}, {Color.RED}),
+    ],
+)
+def test_code_of_laws(hand, colors_with_cards):
+    code_of_laws = CodeOfLawsDogma()
+    assert code_of_laws.symbol == SymbolType.CROWN
+
+    activating_player = Mock(hand=hand, colors_with_cards=colors_with_cards)
+
+    effect = code_of_laws.dogma_effect(Mock(), activating_player)
+    tuckable_cards = {card for card in hand if card.color in colors_with_cards}
+
+    if not tuckable_cards:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Tuck)
+        assert (
+            operation.allowed_cards(Mock(), activating_player, None) == tuckable_cards
+        )
+
+        tucked_card = list(tuckable_cards)[0]
+        on_completion = operation.on_completion({tucked_card})
+        assert isinstance(on_completion, Optional)
+        splay = on_completion.operation
+        assert isinstance(splay, Splay)
+        assert splay.target_player == activating_player
+        assert splay.allowed_colors == {tucked_card.color}
+        assert splay.allowed_directions == {SplayDirection.LEFT}
+
+
+@pytest.mark.parametrize(
+    "drawn_card, colors_with_cards, should_meld_and_draw",
+    [
+        (Mock(color=Color.RED), set(), False),
+        (Mock(color=Color.RED), {Color.YELLOW}, False),
+        (Mock(color=Color.RED), {Color.YELLOW, Color.RED}, True),
+    ],
+)
+def test_mysticism(drawn_card, colors_with_cards, should_meld_and_draw):
+    mysticism = MysticismDogma()
+    assert mysticism.symbol == SymbolType.CASTLE
+
+    activating_player = Mock(colors_with_cards=colors_with_cards)
+
+    effect = mysticism.dogma_effect(Mock(), activating_player)
+    assert isinstance(effect, Draw)
+    assert effect.target_player == activating_player
+    assert effect.draw_location({drawn_card}) == (
+        CardLocation.BOARD if should_meld_and_draw else CardLocation.HAND
+    )
+    assert effect.level == 1
+    on_completion = effect.on_completion({drawn_card})
+
+    if not should_meld_and_draw:
+        assert on_completion is None
+    else:
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(Mock()) == CardLocation.HAND
+        assert on_completion.level == 1

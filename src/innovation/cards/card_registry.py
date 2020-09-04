@@ -376,24 +376,25 @@ class CodeOfLawsDogma(BaseDogma):
         return SymbolType.CROWN
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
         colors_on_board = activating_player.colors_with_cards
         allowed_cards = {
             card for card in activating_player.hand if card.color in colors_on_board
         }
 
-        return Optional(
-            Tuck(
-                allowed_cards=lambda _: allowed_cards,
-                on_completion=lambda cards: Optional(
-                    Splay(
-                        target_player=activating_player,
-                        allowed_colors={card.color for card in cards},
-                        allowed_directions={SplayDirection.LEFT},
-                    )
-                ),
+        if allowed_cards:
+            return Optional(
+                Tuck(
+                    allowed_cards=lambda _, __, ___: allowed_cards,
+                    on_completion=lambda cards: Optional(
+                        Splay(
+                            target_player=activating_player,
+                            allowed_colors={card.color for card in cards},
+                            allowed_directions={SplayDirection.LEFT},
+                        )
+                    ),
+                )
             )
-        )
 
 
 class CityStatesDemand(BaseDemand):
@@ -435,7 +436,7 @@ class MysticismDogma(BaseDogma):
         return SymbolType.CASTLE
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
+    def dogma_effect(_, activating_player: Player) -> Draw:
         colors_on_board = activating_player.colors_with_cards
 
         return Draw(
