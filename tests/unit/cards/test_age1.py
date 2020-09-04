@@ -2,10 +2,17 @@ from src.innovation.cards.card_registry import (
     ArcheryDemand,
     CityStatesDemand,
     OarsDemand,
-    MetalWorkingDogma
+    MetalWorkingDogma,
+    AgricultureDogma,
 )
 from src.innovation.cards.cards import SymbolType, Symbol, Position
-from src.innovation.cards.card_effects import Draw, CardLocation, TransferCard
+from src.innovation.cards.card_effects import (
+    Draw,
+    CardLocation,
+    TransferCard,
+    Optional,
+    Return,
+)
 from mock import Mock
 import pytest
 
@@ -228,3 +235,35 @@ def test_metalworking_dogma(drawn_card, draw_location, should_repeat):
     assert effect.reveal is True
     assert effect.num_cards == 1
     assert effect.on_completion is None
+
+
+@pytest.mark.parametrize("hand", [set(), {Mock(age=1)}, {Mock(age=2), Mock(age=3)}])
+def test_agriculture(hand):
+    agriculture = AgricultureDogma()
+    assert agriculture.symbol == SymbolType.LEAF
+
+    game_state = Mock()
+    activating_player = Mock(hand=hand)
+
+    effect = agriculture.dogma_effect(game_state, activating_player)
+
+    if not hand:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+
+        returned_card = max(hand, key=lambda card: card.age)
+
+        assert operation.allowed_cards(game_state, activating_player, None) == hand
+        assert operation.min_cards == 1
+        assert operation.max_cards == 1
+
+        on_completion_effect = operation.on_completion({returned_card})
+        assert isinstance(on_completion_effect, Draw)
+
+        drawn_card = Mock()
+        assert on_completion_effect.target_player == activating_player
+        assert on_completion_effect.draw_location(drawn_card) == CardLocation.SCORE_PILE
+        assert on_completion_effect.level == returned_card.age + 1

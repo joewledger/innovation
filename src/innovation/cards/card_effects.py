@@ -28,13 +28,10 @@ class Prompt:
 
 
 effect_building_blocks = Union[Primitive, SequenceOperator, Prompt, None]
-
-
-@dataclass
-class ReturnUntilPass(Prompt):
-    max_cards: int
-    card_criteria: Callable[[Card], bool]
-    post_effect: Callable[[Set[Card]], effect_building_blocks]
+game_state_to_card_set_func = Callable[
+    [GameState, Player, Union[Player, None]], Set[Card]
+]
+card_set_to_effect_func = Callable[[Set[Card]], effect_building_blocks]
 
 
 class BaseDogma(BaseEffect):
@@ -75,24 +72,24 @@ class Draw(Primitive):
     repeat_effect: Callable[[Set[Card]], bool] = None
     level: int = None
     num_cards: int = 1
-    on_completion: Callable[[Set[Card]], effect_building_blocks] = None
+    on_completion: card_set_to_effect_func = None
     reveal: bool = False
 
 
 @dataclass
 class Return(Prompt):
-    allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
+    allowed_cards: game_state_to_card_set_func
     min_cards: int
     max_cards: int
-    on_completion: Callable[[Set[Card]], effect_building_blocks] = None
+    on_completion: card_set_to_effect_func = None
 
 
 @dataclass
 class Meld(Primitive):
-    allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
+    allowed_cards: game_state_to_card_set_func
     min_cards: int = 1
     max_cards: Union[int, None] = 1
-    on_completion: Callable[[Set[Card]], effect_building_blocks] = None
+    on_completion: card_set_to_effect_func = None
 
 
 @dataclass
@@ -102,10 +99,10 @@ class Achieve(Primitive):
 
 @dataclass
 class Tuck(Primitive):
-    allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
+    allowed_cards: game_state_to_card_set_func
     min_cards: int = 1
     max_cards: int = 1
-    on_completion: Callable[[Set[Card]], effect_building_blocks] = None
+    on_completion: card_set_to_effect_func = None
 
 
 @dataclass
@@ -120,7 +117,7 @@ class TransferCard(Primitive):
     giving_player: Player
     receiving_player: Player
     # function mapping (game_state, activating_player, target_player) -> set of cards that can be transferred
-    allowed_cards: Callable[[GameState, Player, Player], Set[Card]]
+    allowed_cards: game_state_to_card_set_func
     card_location: CardLocation
     card_destination: CardLocation
-    on_completion: Callable[[Set[Card]], effect_building_blocks] = None
+    on_completion: game_state_to_card_set_func = None

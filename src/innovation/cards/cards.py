@@ -111,6 +111,4 @@ class CardStack:
 
 
 def cards_with_symbol(cards: Set[Card], symbol: SymbolType) -> Set[Card]:
-    return {
-        card for card in cards if symbol in (s.symbol_type for s in card.symbols)
-    }
+    return {card for card in cards if symbol in (s.symbol_type for s in card.symbols)}

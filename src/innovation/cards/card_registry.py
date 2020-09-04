@@ -7,7 +7,7 @@ from src.innovation.cards.cards import (
     SymbolType,
     Position,
     SplayDirection,
-    cards_with_symbol
+    cards_with_symbol,
 )
 from src.innovation.cards.card_effects import (
     BaseDemand,
@@ -123,19 +123,20 @@ class AgricultureDogma(BaseDogma):
         return SymbolType.LEAF
 
     @staticmethod
-    def dogma_effect(_, activating_player: Player):
-        return Optional(
-            Return(
-                allowed_cards=lambda _: activating_player.hand,
-                min_cards=1,
-                max_cards=1,
-                on_completion=lambda cards: Draw(
-                    target_player=activating_player,
-                    draw_location=lambda _: CardLocation.SCORE_PILE,
-                    level=list(cards)[0].age + 1,
-                ),
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if len(activating_player.hand) >= 1:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    min_cards=1,
+                    max_cards=1,
+                    on_completion=lambda cards: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.SCORE_PILE,
+                        level=list(cards)[0].age + 1,
+                    ),
+                )
             )
-        )
 
 
 class DomesticationDogma(BaseDogma):
