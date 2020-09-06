@@ -121,3 +121,4 @@ class TransferCard(Primitive):
     card_location: CardLocation
     card_destination: CardLocation
     on_completion: card_set_to_effect_func = None
+    num_cards: int = 1

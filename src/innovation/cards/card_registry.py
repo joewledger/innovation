@@ -455,6 +455,35 @@ class MysticismDogma(BaseDogma):
         )
 
 
+class ConstructionDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, Draw]:
+        draw = Draw(
+            target_player=target_player,
+            draw_location=lambda _: CardLocation.HAND,
+            level=2,
+        )
+
+        if target_player.hand:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: target_player.hand,
+                card_location=CardLocation.HAND,
+                card_destination=CardLocation.HAND,
+                num_cards=min(2, len(target_player.hand)),
+                on_completion=lambda _: draw,
+            )
+        else:
+            return draw
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
