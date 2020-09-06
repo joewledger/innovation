@@ -484,6 +484,28 @@ class ConstructionDemand(BaseDemand):
             return draw
 
 
+class ConstructionDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def has_all_colors(player: Player):
+        all_colors = {color for color in Color}
+        player_colors = {card.color for card in player.top_cards}
+        return all_colors == player_colors
+
+    @staticmethod
+    def dogma_effect(
+        game_state: GameState, activating_player: Player
+    ) -> Union[Achieve, None]:
+        if len(activating_player.top_cards) == 5 and not any(
+            len(player.top_cards) == 5 and player != activating_player
+            for player in game_state.players
+        ):
+            return Achieve(GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Empire"))
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
