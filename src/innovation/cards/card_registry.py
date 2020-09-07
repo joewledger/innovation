@@ -552,6 +552,39 @@ class RoadBuildingDogma(BaseDogma):
             )
 
 
+class CanalBuildingDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.hand or activating_player.score_pile:
+            highest_cards_in_hand = {
+                card
+                for card in activating_player.hand
+                if card.age == max(activating_player.hand, key=lambda c: c.age)
+            }
+            highest_cards_in_score_pile = {
+                card
+                for card in activating_player.score_pile
+                if card.age == max(activating_player.score_pile, key=lambda c: c.age)
+            }
+
+            return Optional(
+                ExchangeCards(
+                    allowed_giving_player={activating_player},
+                    allowed_receiving_player={activating_player},
+                    allowed_giving_cards=lambda _, __, ___: highest_cards_in_hand,
+                    allowed_receiving_cards=lambda _, __, ___: highest_cards_in_score_pile,
+                    num_cards_giving=len(highest_cards_in_hand),
+                    num_cards_receiving=len(highest_cards_in_score_pile),
+                    giving_location=CardLocation.HAND,
+                    receiving_location=CardLocation.SCORE_PILE,
+                )
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(

@@ -2,6 +2,7 @@ from src.innovation.cards.card_registry import (
     ConstructionDemand,
     ConstructionDogma,
     RoadBuildingDogma,
+    CanalBuildingDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -162,3 +163,52 @@ def test_road_building(activating_hand, receiving_colors_on_board):
             assert operation.num_cards_receiving == 1
             assert operation.giving_location == CardLocation.BOARD
             assert operation.receiving_location == CardLocation.BOARD
+
+
+def canal_building_card_sets():
+    return [
+        set(),
+        {Mock(age=1)},
+        {Mock(age=2), Mock(age=1)},
+        {Mock(age=2), Mock(age=1), Mock(age=1)},
+        {Mock(age=2), Mock(age=2), Mock(age=1)},
+    ]
+
+
+@pytest.mark.parametrize("hand", canal_building_card_sets())
+@pytest.mark.parametrize("score_pile", canal_building_card_sets())
+def test_canal_building(hand, score_pile):
+    canal_building = CanalBuildingDogma()
+    assert canal_building.symbol == SymbolType.CROWN
+
+    activating_player = Mock(hand=hand, score_pile=score_pile)
+
+    effect = canal_building.dogma_effect(Mock(), activating_player)
+    if not hand and not score_pile:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, ExchangeCards)
+        assert operation.allowed_giving_player == {activating_player}
+        assert operation.allowed_receiving_player == {activating_player}
+        assert operation.allowed_giving_cards(Mock(), activating_player, None) == {
+            card for card in hand if card.age == max(hand, key=lambda c: c.age)
+        }
+        assert operation.allowed_receiving_cards(Mock(), activating_player, None) == {
+            card
+            for card in score_pile
+            if card.age == max(score_pile, key=lambda c: c.age)
+        }
+        assert operation.num_cards_giving == len(
+            {card for card in hand if card.age == max(hand, key=lambda c: c.age)}
+        )
+        assert operation.num_cards_receiving == len(
+            {
+                card
+                for card in score_pile
+                if card.age == max(score_pile, key=lambda c: c.age)
+            }
+        )
+        assert operation.giving_location == CardLocation.HAND
+        assert operation.receiving_location == CardLocation.SCORE_PILE
