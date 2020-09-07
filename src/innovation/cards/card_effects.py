@@ -122,3 +122,15 @@ class TransferCard(Primitive):
     card_destination: CardLocation
     on_completion: card_set_to_effect_func = None
     num_cards: int = 1
+
+
+@dataclass
+class ExchangeCards(Primitive):
+    allowed_giving_player: Set[Player]
+    allowed_receiving_player: Set[Player]
+    allowed_giving_cards: game_state_to_card_set_func
+    allowed_receiving_cards: game_state_to_card_set_func
+    num_cards_giving: int
+    num_cards_receiving: int
+    giving_location: CardLocation
+    receiving_location: CardLocation

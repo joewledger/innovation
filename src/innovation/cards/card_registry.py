@@ -16,6 +16,7 @@ from src.innovation.cards.card_effects import (
     Draw,
     CardLocation,
     TransferCard,
+    ExchangeCards,
     Meld,
     Return,
     Optional,
@@ -504,6 +505,51 @@ class ConstructionDogma(BaseDogma):
             for player in game_state.players
         ):
             return Achieve(GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Empire"))
+
+
+class RoadBuildingDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(
+        game_state: GameState, activating_player: Player
+    ) -> Union[Meld, None]:
+        if activating_player.hand:
+            return Meld(
+                allowed_cards=lambda _, __, ___: activating_player.hand,
+                min_cards=1,
+                max_cards=2,
+                on_completion=lambda cards: (
+                    Optional(
+                        ExchangeCards(
+                            allowed_giving_player={activating_player},
+                            allowed_receiving_player={
+                                player
+                                for player in game_state.players
+                                if player != activating_player
+                            },
+                            allowed_giving_cards=lambda _, giving_player, __: {
+                                giving_player.board.get(Color.RED).top_card
+                            }
+                            if Color.RED in giving_player.colors_with_cards
+                            else {},
+                            allowed_receiving_cards=lambda _, __, receiving_player: {
+                                receiving_player.board.get(Color.GREEN).top_card
+                            }
+                            if Color.GREEN in receiving_player.colors_with_cards
+                            else {},
+                            num_cards_giving=1,
+                            num_cards_receiving=1,
+                            giving_location=CardLocation.BOARD,
+                            receiving_location=CardLocation.BOARD,
+                        )
+                    )
+                    if len(cards) == 2
+                    else None
+                ),
+            )
 
 
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(

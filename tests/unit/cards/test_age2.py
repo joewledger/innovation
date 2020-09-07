@@ -1,6 +1,18 @@
-from src.innovation.cards.card_registry import ConstructionDemand, ConstructionDogma
+from src.innovation.cards.card_registry import (
+    ConstructionDemand,
+    ConstructionDogma,
+    RoadBuildingDogma,
+)
 from src.innovation.cards.cards import SymbolType, Color
-from src.innovation.cards.card_effects import Achieve, Draw, TransferCard, CardLocation
+from src.innovation.cards.card_effects import (
+    Achieve,
+    Draw,
+    TransferCard,
+    CardLocation,
+    Meld,
+    Optional,
+    ExchangeCards,
+)
 import pytest
 from mock import Mock
 
@@ -79,3 +91,74 @@ def test_construction_dogma(
     else:
         assert isinstance(effect, Achieve)
         assert effect.achievement.name == "Empire"
+
+
+@pytest.mark.parametrize(
+    "activating_hand, receiving_colors_on_board",
+    [
+        (set(), set()),
+        ({Mock()}, {Color.GREEN}),
+        ({Mock(), Mock()}, {Color.GREEN}),
+        ({Mock(), Mock()}, {Color.RED}),
+    ],
+)
+def test_road_building(activating_hand, receiving_colors_on_board):
+    road_building = RoadBuildingDogma()
+    assert road_building.symbol == SymbolType.CASTLE
+
+    red_card = Mock()
+    green_card = Mock()
+
+    activating_player = Mock(
+        hand=activating_hand,
+        board={Color.RED: Mock(top_card=red_card)},
+        colors_with_cards={Color.RED},
+    )
+    target_player = (
+        Mock(
+            board={Color.GREEN: Mock(top_card=green_card)},
+            colors_with_cards={Color.GREEN},
+        )
+        if Color.GREEN in receiving_colors_on_board
+        else Mock(
+            board={color: Mock(top_card=Mock()) for color in receiving_colors_on_board},
+            colors_with_cards=receiving_colors_on_board,
+        )
+    )
+    game_state = Mock(players={activating_player, target_player})
+
+    effect = road_building.dogma_effect(game_state, activating_player)
+    if not activating_hand:
+        assert effect is None
+    else:
+        assert isinstance(effect, Meld)
+        assert (
+            effect.allowed_cards(game_state, activating_player, None) == activating_hand
+        )
+        assert effect.min_cards == 1
+        assert effect.max_cards == 2
+
+        melded_cards = set(list(activating_hand)[:2])
+        on_completion = effect.on_completion(melded_cards)
+
+        if len(melded_cards) != 2:
+            assert on_completion is None
+        else:
+            assert isinstance(on_completion, Optional)
+            operation = on_completion.operation
+            assert isinstance(operation, ExchangeCards)
+            assert operation.allowed_giving_player == {activating_player}
+            assert operation.allowed_receiving_player == {target_player}
+            assert operation.allowed_giving_cards(
+                game_state, activating_player, target_player
+            ) == {red_card}
+            allowed_receiving_cards = operation.allowed_receiving_cards(
+                game_state, activating_player, target_player
+            )
+            assert allowed_receiving_cards == (
+                {green_card} if Color.GREEN in receiving_colors_on_board else {}
+            )
+            assert operation.num_cards_giving == 1
+            assert operation.num_cards_receiving == 1
+            assert operation.giving_location == CardLocation.BOARD
+            assert operation.receiving_location == CardLocation.BOARD
