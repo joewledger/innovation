@@ -22,10 +22,11 @@ from src.innovation.cards.card_effects import (
     Optional,
     Tuck,
     Splay,
+    effect_building_blocks,
 )
 from src.innovation.game.gamestate import GameState
 from src.innovation.players.players import Player
-from typing import Set, Union
+from typing import List, Set, Union
 
 
 class ArcheryDemand(BaseDemand):
@@ -115,6 +116,19 @@ class OarsDemand(BaseDemand):
                     draw_location=lambda _: CardLocation.HAND,
                     level=1,
                 ),
+            )
+
+    @staticmethod
+    def chained_dogma(
+        game_state: GameState,
+        activating_player: Player,
+        demand_results: List[effect_building_blocks],
+    ) -> effect_building_blocks:
+        if all(result is None for result in demand_results):
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=1,
             )
 
 

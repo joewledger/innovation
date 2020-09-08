@@ -104,6 +104,13 @@ def test_oars_demand(
     effect = oars_demand.demand_effect(game_state, activating_player, target_player)
     if not should_transfer:
         assert effect is None
+        chained_dogma = oars_demand.chained_dogma(
+            game_state, activating_player, [effect]
+        )
+        assert isinstance(chained_dogma, Draw)
+        assert chained_dogma.target_player == activating_player
+        assert chained_dogma.draw_location(Mock()) == CardLocation.HAND
+        assert chained_dogma.level == 1
     else:
         transferred_card = Mock()
 
@@ -123,6 +130,11 @@ def test_oars_demand(
         assert on_completion_effect.target_player == target_player
         assert on_completion_effect.draw_location(drawn_card) == CardLocation.HAND
         assert on_completion_effect.level == 1
+
+        chained_dogma = oars_demand.chained_dogma(
+            game_state, activating_player, [effect]
+        )
+        assert chained_dogma is None
 
 
 @pytest.mark.parametrize(

@@ -4,7 +4,7 @@ from src.innovation.players.players import Player
 from src.innovation.game.gamestate import GameState
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Set, Union, Callable
+from typing import List, Set, Union, Callable
 from enum import Enum, unique
 
 
@@ -48,6 +48,14 @@ class BaseDemand(BaseEffect):
     @abstractmethod
     def demand_effect(
         game_state: GameState, activating_player: Player, target_player: Player
+    ) -> effect_building_blocks:
+        pass
+
+    @staticmethod
+    def chained_dogma(
+        game_state: GameState,
+        activating_player: Player,
+        demand_results: List[effect_building_blocks],
     ) -> effect_building_blocks:
         pass
 
