@@ -6,6 +6,7 @@ from src.innovation.cards.card_registry import (
     FermentingDogma,
     CurrencyDogma,
     MapmakingDemand,
+    CalendarDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -300,3 +301,27 @@ def test_mapmaking_demand(target_score_pile_ages, should_transfer):
         assert chained_dogma.target_player == activating_player
         assert chained_dogma.draw_location(Mock()) == CardLocation.SCORE_PILE
         assert chained_dogma.level == 1
+
+
+@pytest.mark.parametrize(
+    "hand_size, score_pile_size, should_draw",
+    [(0, 0, False), (0, 3, True), (4, 0, False), (2, 2, False)],
+)
+def test_calendar_dogma(hand_size, score_pile_size, should_draw):
+    calendar = CalendarDogma()
+    assert calendar.symbol == SymbolType.LEAF
+
+    activating_player = Mock(
+        hand={Mock() for _ in range(hand_size)},
+        score_pile={Mock() for _ in range(score_pile_size)},
+    )
+
+    effect = calendar.dogma_effect(Mock(), activating_player)
+    if not should_draw:
+        assert effect is None
+    else:
+        assert isinstance(effect, Draw)
+        assert effect.target_player == activating_player
+        assert effect.draw_location(Mock()) == CardLocation.HAND
+        assert effect.level == 3
+        assert effect.num_cards == 2
