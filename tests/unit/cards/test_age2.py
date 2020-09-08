@@ -8,6 +8,8 @@ from src.innovation.cards.card_registry import (
     MapmakingDemand,
     CalendarDogma,
     MathematicsDogma,
+    MonotheismDemand,
+    MonotheismDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -356,3 +358,57 @@ def test_mathematics_dogma(hand_ages, expected_meld_level):
         assert on_completion.target_player == activating_player
         assert on_completion.draw_location(Mock()) == CardLocation.BOARD
         assert on_completion.level == returned_card.age + 1
+
+
+@pytest.mark.parametrize(
+    "target_colors, activating_colors, should_transfer",
+    [
+        (set(), set(), False),
+        ({Color.RED}, set(), True),
+        ({Color.RED}, {Color.RED}, False),
+        ({Color.RED, Color.YELLOW}, {Color.RED}, True),
+    ],
+)
+def test_monotheism_demand(target_colors, activating_colors, should_transfer):
+    monotheism = MonotheismDemand()
+    assert monotheism.symbol == SymbolType.CASTLE
+
+    activating_player = Mock(colors_with_cards=activating_colors)
+    target_top_cards = {Mock(color=color) for color in target_colors}
+    target_player = Mock(colors_with_cards=target_colors, top_cards=target_top_cards)
+
+    effect = monotheism.demand_effect(Mock(), activating_player, target_player)
+    if not should_transfer:
+        assert effect is None
+    else:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == target_player
+        assert effect.receiving_player == activating_player
+        assert effect.allowed_cards(Mock(), activating_player, target_player) == {
+            card
+            for card in target_top_cards
+            if card.color in target_colors - activating_colors
+        }
+        assert effect.card_location == CardLocation.BOARD
+        assert effect.card_destination == CardLocation.SCORE_PILE
+
+        on_completion = effect.on_completion(Mock())
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == target_player
+        assert on_completion.draw_location(Mock()) == CardLocation.BOARD
+        assert on_completion.level == 1
+        assert on_completion.tuck is True
+
+
+def test_monotheism_dogma():
+    monotheism = MonotheismDogma()
+    assert monotheism.symbol == SymbolType.CASTLE
+
+    activating_player = Mock()
+    effect = monotheism.dogma_effect(Mock(), activating_player)
+
+    assert isinstance(effect, Draw)
+    assert effect.target_player == activating_player
+    assert effect.draw_location(Mock()) == CardLocation.BOARD
+    assert effect.level == 1
+    assert effect.tuck is True

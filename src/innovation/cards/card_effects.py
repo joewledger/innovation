@@ -82,6 +82,7 @@ class Draw(Primitive):
     num_cards: int = 1
     on_completion: card_set_to_effect_func = None
     reveal: bool = False
+    tuck: bool = False
 
 
 @dataclass

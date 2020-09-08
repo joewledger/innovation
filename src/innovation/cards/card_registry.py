@@ -713,6 +713,54 @@ class MathematicsDogma(BaseDogma):
             )
 
 
+class MonotheismDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, None]:
+        allowed_colors = (
+            target_player.colors_with_cards - activating_player.colors_with_cards
+        )
+
+        if allowed_colors:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: {
+                    card
+                    for card in target_player.top_cards
+                    if card.color in allowed_colors
+                },
+                card_location=CardLocation.BOARD,
+                card_destination=CardLocation.SCORE_PILE,
+                on_completion=lambda _: Draw(
+                    target_player=target_player,
+                    draw_location=lambda _: CardLocation.BOARD,
+                    level=1,
+                    tuck=True,
+                ),
+            )
+
+
+class MonotheismDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Draw:
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.BOARD,
+            level=1,
+            tuck=True,
+        )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
