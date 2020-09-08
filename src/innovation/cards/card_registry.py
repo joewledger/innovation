@@ -604,6 +604,29 @@ class FermentingDogma(BaseDogma):
             )
 
 
+class CurrencyDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.hand:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    min_cards=1,
+                    max_cards=len(activating_player.hand),
+                    on_completion=lambda cards: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.SCORE_PILE,
+                        level=2,
+                        num_cards=len({card.age for card in cards}),
+                    ),
+                )
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(

@@ -4,6 +4,7 @@ from src.innovation.cards.card_registry import (
     RoadBuildingDogma,
     CanalBuildingDogma,
     FermentingDogma,
+    CurrencyDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -12,6 +13,7 @@ from src.innovation.cards.card_effects import (
     TransferCard,
     CardLocation,
     Meld,
+    Return,
     Optional,
     ExchangeCards,
 )
@@ -234,3 +236,33 @@ def test_fermenting(num_leafs, expected_draws):
         assert effect.draw_location(Mock()) == CardLocation.HAND
         assert effect.level == 2
         assert effect.num_cards == expected_draws
+
+
+@pytest.mark.parametrize(
+    "hand_ages, expected_draws",
+    [([], 0), ([1], 1), ([1, 2], 2), ([1, 1, 2], 2), ([1, 1, 2, 2, 3], 3)],
+)
+def test_currency_dogma(hand_ages, expected_draws):
+    currency = CurrencyDogma()
+    assert currency.symbol == SymbolType.CROWN
+
+    hand = {Mock(age=age) for age in hand_ages}
+    activating_player = Mock(hand=hand)
+    effect = currency.dogma_effect(Mock(), activating_player)
+
+    if not expected_draws:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+        assert operation.allowed_cards(Mock(), activating_player, None) == hand
+        assert operation.min_cards == 1
+        assert operation.max_cards == len(hand)
+
+        on_completion = operation.on_completion(hand)
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(hand) == CardLocation.SCORE_PILE
+        assert on_completion.level == 2
+        assert on_completion.num_cards == expected_draws
