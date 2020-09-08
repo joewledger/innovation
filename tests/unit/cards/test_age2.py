@@ -3,6 +3,7 @@ from src.innovation.cards.card_registry import (
     ConstructionDogma,
     RoadBuildingDogma,
     CanalBuildingDogma,
+    FermentingDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -212,3 +213,24 @@ def test_canal_building(hand, score_pile):
         )
         assert operation.giving_location == CardLocation.HAND
         assert operation.receiving_location == CardLocation.SCORE_PILE
+
+
+@pytest.mark.parametrize(
+    "num_leafs, expected_draws", [(0, 0), (1, 0), (2, 1), (3, 1), (4, 2), (11, 5)]
+)
+def test_fermenting(num_leafs, expected_draws):
+    fermenting = FermentingDogma()
+    assert fermenting.symbol == SymbolType.LEAF
+
+    activating_player = Mock(symbol_count={SymbolType.LEAF: num_leafs})
+
+    effect = fermenting.dogma_effect(Mock(), activating_player)
+
+    if not expected_draws:
+        assert effect is None
+    else:
+        assert isinstance(effect, Draw)
+        assert effect.target_player == activating_player
+        assert effect.draw_location(Mock()) == CardLocation.HAND
+        assert effect.level == 2
+        assert effect.num_cards == expected_draws

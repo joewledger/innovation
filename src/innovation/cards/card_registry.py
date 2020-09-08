@@ -585,6 +585,25 @@ class CanalBuildingDogma(BaseDogma):
             )
 
 
+class FermentingDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Draw, None]:
+        leaf_count = activating_player.symbol_count[SymbolType.LEAF]
+        draw_count = leaf_count // 2
+
+        if draw_count:
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=2,
+                num_cards=draw_count,
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
