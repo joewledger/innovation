@@ -75,6 +75,10 @@ class CardStack:
             return self.stack[-1]
 
     @property
+    def can_splay(self) -> bool:
+        return len(self.stack) >= 2
+
+    @property
     def symbol_count(self) -> Dict[SymbolType, int]:
         symbols_to_count = []
 

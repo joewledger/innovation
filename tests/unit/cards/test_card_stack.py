@@ -121,3 +121,12 @@ def test_symbol_count(cards, splay_direction, expected_symbols):
     for symbol, count in actual_symbols.items():
         if symbol not in expected_symbols:
             assert count == 0
+
+
+@pytest.mark.parametrize("splay_direction", [direction for direction in SplayDirection])
+@pytest.mark.parametrize(
+    "num_cards, can_splay", [(0, False), (1, False), (2, True), (3, True), (100, True)]
+)
+def test_can_splay(splay_direction, num_cards, can_splay):
+    stack = CardStack(deque([Mock() for _ in range(num_cards)]), splay_direction)
+    assert stack.can_splay is can_splay

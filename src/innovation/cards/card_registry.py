@@ -761,6 +761,43 @@ class MonotheismDogma(BaseDogma):
         )
 
 
+class PhilosophyDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        splayable_colors = activating_player.splayable_colors
+        if splayable_colors:
+            return Optional(
+                Splay(
+                    target_player=activating_player,
+                    allowed_colors=splayable_colors,
+                    allowed_directions={SplayDirection.LEFT},
+                )
+            )
+
+
+class PhilosophyDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.hand:
+            return Optional(
+                TransferCard(
+                    giving_player=activating_player,
+                    receiving_player=activating_player,
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    card_location=CardLocation.HAND,
+                    card_destination=CardLocation.SCORE_PILE,
+                )
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(

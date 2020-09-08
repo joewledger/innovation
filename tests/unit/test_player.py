@@ -165,3 +165,36 @@ def test_symbol_count(board, expected_symbols):
     for symbol, count in actual_symbols.items():
         if symbol not in expected_symbols:
             assert count == 0
+
+
+@pytest.mark.parametrize(
+    "board, expected_splayable_colors",
+    [
+        ({}, set()),
+        ({Color.RED: CardStack(deque([Mock()]), SplayDirection.NONE)}, set()),
+        (
+            {
+                Color.RED: CardStack(deque([Mock()]), SplayDirection.NONE),
+                Color.YELLOW: CardStack(deque([Mock()]), SplayDirection.NONE),
+            },
+            set(),
+        ),
+        (
+            {
+                Color.RED: CardStack(deque([Mock(), Mock()]), SplayDirection.LEFT),
+                Color.YELLOW: CardStack(deque([Mock()]), SplayDirection.NONE),
+            },
+            {Color.RED},
+        ),
+        (
+            {
+                Color.RED: CardStack(deque([Mock(), Mock()]), SplayDirection.RIGHT),
+                Color.YELLOW: CardStack(deque([Mock(), Mock()]), SplayDirection.UP),
+            },
+            {Color.RED, Color.YELLOW},
+        ),
+    ],
+)
+def test_splayable_colors(board, expected_splayable_colors):
+    player = Player(board, set(), set(), set())
+    assert player.splayable_colors == expected_splayable_colors

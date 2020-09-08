@@ -46,6 +46,10 @@ class Player:
         }
 
     @property
+    def splayable_colors(self) -> Set[Color]:
+        return {color for color in self.board if self.board[color].can_splay}
+
+    @property
     def symbol_count(self) -> Dict[SymbolType, int]:
         card_stacks = self.board.values()
         return {

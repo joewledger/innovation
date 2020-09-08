@@ -10,8 +10,10 @@ from src.innovation.cards.card_registry import (
     MathematicsDogma,
     MonotheismDemand,
     MonotheismDogma,
+    PhilosophyDogma1,
+    PhilosophyDogma2,
 )
-from src.innovation.cards.cards import SymbolType, Color
+from src.innovation.cards.cards import SymbolType, Color, SplayDirection
 from src.innovation.cards.card_effects import (
     Achieve,
     Draw,
@@ -21,6 +23,7 @@ from src.innovation.cards.card_effects import (
     Return,
     Optional,
     ExchangeCards,
+    Splay,
 )
 import pytest
 from mock import Mock
@@ -412,3 +415,45 @@ def test_monotheism_dogma():
     assert effect.draw_location(Mock()) == CardLocation.BOARD
     assert effect.level == 1
     assert effect.tuck is True
+
+
+@pytest.mark.parametrize(
+    "splayable_colors", [set(), {Color.YELLOW}, {Color.YELLOW, Color.RED}]
+)
+def test_philosophy_dogma1(splayable_colors):
+    philosophy = PhilosophyDogma1()
+    assert philosophy.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock(splayable_colors=splayable_colors)
+    effect = philosophy.dogma_effect(Mock(), activating_player)
+
+    if not splayable_colors:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Splay)
+        assert operation.target_player == activating_player
+        assert operation.allowed_colors == splayable_colors
+        assert operation.allowed_directions == {SplayDirection.LEFT}
+
+
+@pytest.mark.parametrize("hand", [set(), {Mock(age=1)}, {Mock(age=1), Mock(age=2)}])
+def test_philosophy_dogma2(hand):
+    philosophy = PhilosophyDogma2()
+    assert philosophy.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock(hand=hand)
+    effect = philosophy.dogma_effect(Mock(), activating_player)
+
+    if not hand:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, TransferCard)
+        assert operation.giving_player == activating_player
+        assert operation.receiving_player == activating_player
+        assert operation.allowed_cards(Mock(), activating_player, None) == hand
+        assert operation.card_location == CardLocation.HAND
+        assert operation.card_destination == CardLocation.SCORE_PILE
