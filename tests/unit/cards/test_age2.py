@@ -7,6 +7,7 @@ from src.innovation.cards.card_registry import (
     CurrencyDogma,
     MapmakingDemand,
     CalendarDogma,
+    MathematicsDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -325,3 +326,33 @@ def test_calendar_dogma(hand_size, score_pile_size, should_draw):
         assert effect.draw_location(Mock()) == CardLocation.HAND
         assert effect.level == 3
         assert effect.num_cards == 2
+
+
+@pytest.mark.parametrize(
+    "hand_ages, expected_meld_level", [({}, None), ({1}, 2), ({1, 1}, 2), ({3, 4}, 5)]
+)
+def test_mathematics_dogma(hand_ages, expected_meld_level):
+    mathematics = MathematicsDogma()
+    assert mathematics.symbol == SymbolType.LIGHT_BULB
+
+    hand = {Mock(age=age) for age in hand_ages}
+    returned_card = max(hand, key=lambda c: c.age) if hand else None
+    activating_player = Mock(hand=hand)
+    effect = mathematics.dogma_effect(Mock(), activating_player)
+
+    if not expected_meld_level:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+
+        assert operation.allowed_cards(Mock(), activating_player, None) == hand
+        assert operation.min_cards == 1
+        assert operation.max_cards == 1
+
+        on_completion = operation.on_completion({returned_card})
+        assert isinstance(on_completion, Draw)
+        assert on_completion.target_player == activating_player
+        assert on_completion.draw_location(Mock()) == CardLocation.BOARD
+        assert on_completion.level == returned_card.age + 1

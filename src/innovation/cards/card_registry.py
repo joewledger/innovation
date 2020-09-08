@@ -691,6 +691,28 @@ class CalendarDogma(BaseDogma):
             )
 
 
+class MathematicsDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.hand:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: activating_player.hand,
+                    min_cards=1,
+                    max_cards=1,
+                    on_completion=lambda cards: Draw(
+                        target_player=activating_player,
+                        draw_location=lambda _: CardLocation.BOARD,
+                        level=list(cards)[0].age + 1,
+                    ),
+                )
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(
