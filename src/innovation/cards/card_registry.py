@@ -641,6 +641,40 @@ class CurrencyDogma(BaseDogma):
             )
 
 
+class MapmakingDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, None]:
+        target_cards = {card for card in target_player.score_pile if card.age == 1}
+
+        if target_cards:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: target_cards,
+                card_location=CardLocation.SCORE_PILE,
+                card_destination=CardLocation.SCORE_PILE,
+            )
+
+    @staticmethod
+    def chained_dogma(
+        _,
+        activating_player: Player,
+        demand_results: List[effect_building_blocks],
+    ) -> effect_building_blocks:
+        if any(effect is not None for effect in demand_results):
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.SCORE_PILE,
+                level=1,
+            )
+
+
 GLOBAL_CARD_REGISTRY = ImmutableRegistry(
     [
         Card(

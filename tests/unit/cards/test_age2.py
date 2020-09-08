@@ -5,6 +5,7 @@ from src.innovation.cards.card_registry import (
     CanalBuildingDogma,
     FermentingDogma,
     CurrencyDogma,
+    MapmakingDemand,
 )
 from src.innovation.cards.cards import SymbolType, Color
 from src.innovation.cards.card_effects import (
@@ -266,3 +267,36 @@ def test_currency_dogma(hand_ages, expected_draws):
         assert on_completion.draw_location(hand) == CardLocation.SCORE_PILE
         assert on_completion.level == 2
         assert on_completion.num_cards == expected_draws
+
+
+@pytest.mark.parametrize(
+    "target_score_pile_ages, should_transfer",
+    [([], False), ([1], True), ([2], False), ([1, 2], True)],
+)
+def test_mapmaking_demand(target_score_pile_ages, should_transfer):
+    mapmaking = MapmakingDemand()
+    assert mapmaking.symbol == SymbolType.CROWN
+
+    target_score_pile = {Mock(age=age) for age in target_score_pile_ages}
+    activating_player = Mock()
+    target_player = Mock(score_pile=target_score_pile)
+
+    effect = mapmaking.demand_effect(Mock(), activating_player, target_player)
+    chained_dogma = mapmaking.chained_dogma(Mock(), activating_player, [effect])
+    if not should_transfer:
+        assert effect is None
+        assert chained_dogma is None
+    else:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == target_player
+        assert effect.receiving_player == activating_player
+        assert effect.allowed_cards(Mock(), activating_player, target_player) == {
+            card for card in target_score_pile if card.age == 1
+        }
+        assert effect.card_location == CardLocation.SCORE_PILE
+        assert effect.card_destination == CardLocation.SCORE_PILE
+
+        assert isinstance(chained_dogma, Draw)
+        assert chained_dogma.target_player == activating_player
+        assert chained_dogma.draw_location(Mock()) == CardLocation.SCORE_PILE
+        assert chained_dogma.level == 1
