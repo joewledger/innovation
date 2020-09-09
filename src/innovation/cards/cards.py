@@ -49,12 +49,15 @@ class Symbol:
     position: Position
 
 
-@dataclass(frozen=True)
+@dataclass
 class Card(Registerable):
     color: Color
     age: int
     symbols: List[Symbol]
-    effects: List[BaseEffect]
+    effects: List[BaseEffect] = None
+
+    def __eq__(self, other):
+        return super().__eq__(other)
 
     def __hash__(self):
         return super().__hash__()

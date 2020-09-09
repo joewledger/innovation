@@ -1,4 +1,8 @@
-from src.innovation.utils.registry import ImmutableRegistry
+from src.innovation.utils.registry import (
+    ImmutableRegistry,
+    MutableRegistry,
+    register_effect,
+)
 from src.innovation.cards.achievement_registry import GLOBAL_ACHIEVEMENTS_REGISTRY
 from src.innovation.cards.cards import (
     Card,
@@ -29,6 +33,263 @@ from src.innovation.players.players import Player
 from typing import List, Set, Union
 
 
+cards = MutableRegistry(
+    [
+        Card(
+            name="Archery",
+            color=Color.RED,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Metalworking",
+            color=Color.RED,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Oars",
+            color=Color.RED,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Agriculture",
+            color=Color.YELLOW,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Domestication",
+            color=Color.YELLOW,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Masonry",
+            color=Color.YELLOW,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Clothing",
+            color=Color.GREEN,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Sailing",
+            color=Color.GREEN,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.TOP_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="The Wheel",
+            color=Color.GREEN,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Pottery",
+            color=Color.BLUE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Tools",
+            color=Color.BLUE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Writing",
+            color=Color.BLUE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Code of Laws",
+            color=Color.PURPLE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="City States",
+            color=Color.PURPLE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Mysticism",
+            color=Color.PURPLE,
+            age=1,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Construction",
+            color=Color.RED,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Road Building",
+            color=Color.RED,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Canal Building",
+            color=Color.YELLOW,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Fermenting",
+            color=Color.YELLOW,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.TOP_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Currency",
+            color=Color.GREEN,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.TOP_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Mapmaking",
+            color=Color.GREEN,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Calendar",
+            color=Color.BLUE,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Mathematics",
+            color=Color.BLUE,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Monotheism",
+            color=Color.PURPLE,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Philosophy",
+            color=Color.PURPLE,
+            age=2,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_RIGHT),
+            ],
+        ),
+    ]
+)
+
+
+@register_effect(registry=cards, card_name="Archery", position=0)
 class ArcheryDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -66,6 +327,7 @@ class ArcheryDemand(BaseDemand):
         )
 
 
+@register_effect(registry=cards, card_name="Metalworking", position=0)
 class MetalWorkingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -93,6 +355,7 @@ class MetalWorkingDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Oars", position=0)
 class OarsDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -132,6 +395,7 @@ class OarsDemand(BaseDemand):
             )
 
 
+@register_effect(registry=cards, card_name="Agriculture", position=0)
 class AgricultureDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -154,6 +418,7 @@ class AgricultureDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Domestication", position=0)
 class DomesticationDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -184,6 +449,7 @@ class DomesticationDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Masonry", position=0)
 class MasonryDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -208,6 +474,7 @@ class MasonryDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Clothing", position=0)
 class ClothingDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -226,6 +493,7 @@ class ClothingDogma1(BaseDogma):
             return Meld(allowed_cards=lambda _, __, ___: allowed_cards)
 
 
+@register_effect(registry=cards, card_name="Clothing", position=1)
 class ClothingDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -255,6 +523,7 @@ class ClothingDogma2(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Sailing", position=0)
 class SailingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -269,6 +538,7 @@ class SailingDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="The Wheel", position=0)
 class WheelDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -288,6 +558,7 @@ class WheelDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Pottery", position=0)
 class PotteryDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -310,6 +581,7 @@ class PotteryDogma1(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Pottery", position=1)
 class PotteryDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -324,6 +596,7 @@ class PotteryDogma2(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Tools", position=0)
 class ToolsDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -346,6 +619,7 @@ class ToolsDogma1(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Tools", position=1)
 class ToolsDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -371,6 +645,7 @@ class ToolsDogma2(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Writing", position=0)
 class WritingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -385,6 +660,7 @@ class WritingDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Code of Laws", position=0)
 class CodeOfLawsDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -412,6 +688,7 @@ class CodeOfLawsDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="City States", position=0)
 class CityStatesDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -445,6 +722,7 @@ class CityStatesDemand(BaseDemand):
             )
 
 
+@register_effect(registry=cards, card_name="Mysticism", position=0)
 class MysticismDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -470,6 +748,7 @@ class MysticismDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Construction", position=0)
 class ConstructionDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -499,6 +778,7 @@ class ConstructionDemand(BaseDemand):
             return draw
 
 
+@register_effect(registry=cards, card_name="Construction", position=1)
 class ConstructionDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -521,6 +801,7 @@ class ConstructionDogma(BaseDogma):
             return Achieve(GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Empire"))
 
 
+@register_effect(registry=cards, card_name="Road Building", position=0)
 class RoadBuildingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -566,6 +847,7 @@ class RoadBuildingDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Canal Building", position=0)
 class CanalBuildingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -599,6 +881,7 @@ class CanalBuildingDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Fermenting", position=0)
 class FermentingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -618,6 +901,7 @@ class FermentingDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Currency", position=0)
 class CurrencyDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -641,6 +925,7 @@ class CurrencyDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Mapmaking", position=0)
 class MapmakingDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -675,6 +960,7 @@ class MapmakingDemand(BaseDemand):
             )
 
 
+@register_effect(registry=cards, card_name="Calendar", position=0)
 class CalendarDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -691,6 +977,7 @@ class CalendarDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Mathematics", position=0)
 class MathematicsDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -713,6 +1000,7 @@ class MathematicsDogma(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Monotheism", position=0)
 class MonotheismDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -746,6 +1034,7 @@ class MonotheismDemand(BaseDemand):
             )
 
 
+@register_effect(registry=cards, card_name="Monotheism", position=1)
 class MonotheismDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -761,6 +1050,7 @@ class MonotheismDogma(BaseDogma):
         )
 
 
+@register_effect(registry=cards, card_name="Philosophy", position=0)
 class PhilosophyDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -779,6 +1069,7 @@ class PhilosophyDogma1(BaseDogma):
             )
 
 
+@register_effect(registry=cards, card_name="Philosophy", position=1)
 class PhilosophyDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -798,40 +1089,4 @@ class PhilosophyDogma2(BaseDogma):
             )
 
 
-GLOBAL_CARD_REGISTRY = ImmutableRegistry(
-    [
-        Card(
-            name="Archery",
-            color=Color.RED,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
-                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
-            ],
-            effects=[ArcheryDemand()],
-        ),
-        Card(
-            name="Sailing",
-            color=Color.GREEN,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CROWN, Position.TOP_LEFT),
-                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
-            ],
-            effects=[],
-        ),
-        Card(
-            name="The Wheel",
-            color=Color.GREEN,
-            age=1,
-            symbols=[
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
-                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
-            ],
-            effects=[],
-        ),
-    ]
-)
+GLOBAL_CARD_REGISTRY = cards.to_immutable_registry()

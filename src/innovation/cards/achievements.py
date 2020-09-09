@@ -4,7 +4,7 @@ from functools import partial
 from typing import Callable, Union, Any
 
 
-@dataclass(frozen=True)
+@dataclass
 class Achievement(Registerable):
     name: str
     is_automatic: bool

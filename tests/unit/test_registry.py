@@ -16,6 +16,10 @@ def test_card_registry_symbols():
         assert len({symbol.position for symbol in symbols}) == 3
 
 
+def test_all_cards_in_registry_have_effects():
+    assert all(len(card.effects) for card in GLOBAL_CARD_REGISTRY.registry.values())
+
+
 def test_achievement_registry_contents():
     achievements = GLOBAL_ACHIEVEMENTS_REGISTRY.registry.values()
     assert len(achievements) == 14
