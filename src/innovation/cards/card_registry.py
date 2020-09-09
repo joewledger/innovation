@@ -33,7 +33,7 @@ from src.innovation.players.players import Player
 from typing import List, Set, Union
 
 
-cards = MutableRegistry(
+mutable_registry = MutableRegistry(
     [
         Card(
             name="Archery",
@@ -289,7 +289,7 @@ cards = MutableRegistry(
 )
 
 
-@register_effect(registry=cards, card_name="Archery", position=0)
+@register_effect(registry=mutable_registry, card_name="Archery", position=0)
 class ArcheryDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -327,7 +327,7 @@ class ArcheryDemand(BaseDemand):
         )
 
 
-@register_effect(registry=cards, card_name="Metalworking", position=0)
+@register_effect(registry=mutable_registry, card_name="Metalworking", position=0)
 class MetalWorkingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -355,7 +355,7 @@ class MetalWorkingDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Oars", position=0)
+@register_effect(registry=mutable_registry, card_name="Oars", position=0)
 class OarsDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -395,7 +395,7 @@ class OarsDemand(BaseDemand):
             )
 
 
-@register_effect(registry=cards, card_name="Agriculture", position=0)
+@register_effect(registry=mutable_registry, card_name="Agriculture", position=0)
 class AgricultureDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -418,7 +418,7 @@ class AgricultureDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Domestication", position=0)
+@register_effect(registry=mutable_registry, card_name="Domestication", position=0)
 class DomesticationDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -449,7 +449,7 @@ class DomesticationDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Masonry", position=0)
+@register_effect(registry=mutable_registry, card_name="Masonry", position=0)
 class MasonryDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -474,7 +474,7 @@ class MasonryDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Clothing", position=0)
+@register_effect(registry=mutable_registry, card_name="Clothing", position=0)
 class ClothingDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -493,7 +493,7 @@ class ClothingDogma1(BaseDogma):
             return Meld(allowed_cards=lambda _, __, ___: allowed_cards)
 
 
-@register_effect(registry=cards, card_name="Clothing", position=1)
+@register_effect(registry=mutable_registry, card_name="Clothing", position=1)
 class ClothingDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -523,7 +523,7 @@ class ClothingDogma2(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Sailing", position=0)
+@register_effect(registry=mutable_registry, card_name="Sailing", position=0)
 class SailingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -538,7 +538,7 @@ class SailingDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="The Wheel", position=0)
+@register_effect(registry=mutable_registry, card_name="The Wheel", position=0)
 class WheelDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -558,7 +558,7 @@ class WheelDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Pottery", position=0)
+@register_effect(registry=mutable_registry, card_name="Pottery", position=0)
 class PotteryDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -581,7 +581,7 @@ class PotteryDogma1(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Pottery", position=1)
+@register_effect(registry=mutable_registry, card_name="Pottery", position=1)
 class PotteryDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -596,7 +596,7 @@ class PotteryDogma2(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Tools", position=0)
+@register_effect(registry=mutable_registry, card_name="Tools", position=0)
 class ToolsDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -619,7 +619,7 @@ class ToolsDogma1(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Tools", position=1)
+@register_effect(registry=mutable_registry, card_name="Tools", position=1)
 class ToolsDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -645,7 +645,7 @@ class ToolsDogma2(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Writing", position=0)
+@register_effect(registry=mutable_registry, card_name="Writing", position=0)
 class WritingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -660,7 +660,7 @@ class WritingDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Code of Laws", position=0)
+@register_effect(registry=mutable_registry, card_name="Code of Laws", position=0)
 class CodeOfLawsDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -688,7 +688,7 @@ class CodeOfLawsDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="City States", position=0)
+@register_effect(registry=mutable_registry, card_name="City States", position=0)
 class CityStatesDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -722,7 +722,7 @@ class CityStatesDemand(BaseDemand):
             )
 
 
-@register_effect(registry=cards, card_name="Mysticism", position=0)
+@register_effect(registry=mutable_registry, card_name="Mysticism", position=0)
 class MysticismDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -748,7 +748,7 @@ class MysticismDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Construction", position=0)
+@register_effect(registry=mutable_registry, card_name="Construction", position=0)
 class ConstructionDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -778,7 +778,7 @@ class ConstructionDemand(BaseDemand):
             return draw
 
 
-@register_effect(registry=cards, card_name="Construction", position=1)
+@register_effect(registry=mutable_registry, card_name="Construction", position=1)
 class ConstructionDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -801,7 +801,7 @@ class ConstructionDogma(BaseDogma):
             return Achieve(GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("Empire"))
 
 
-@register_effect(registry=cards, card_name="Road Building", position=0)
+@register_effect(registry=mutable_registry, card_name="Road Building", position=0)
 class RoadBuildingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -847,7 +847,7 @@ class RoadBuildingDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Canal Building", position=0)
+@register_effect(registry=mutable_registry, card_name="Canal Building", position=0)
 class CanalBuildingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -881,7 +881,7 @@ class CanalBuildingDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Fermenting", position=0)
+@register_effect(registry=mutable_registry, card_name="Fermenting", position=0)
 class FermentingDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -901,7 +901,7 @@ class FermentingDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Currency", position=0)
+@register_effect(registry=mutable_registry, card_name="Currency", position=0)
 class CurrencyDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -925,7 +925,7 @@ class CurrencyDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Mapmaking", position=0)
+@register_effect(registry=mutable_registry, card_name="Mapmaking", position=0)
 class MapmakingDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -960,7 +960,7 @@ class MapmakingDemand(BaseDemand):
             )
 
 
-@register_effect(registry=cards, card_name="Calendar", position=0)
+@register_effect(registry=mutable_registry, card_name="Calendar", position=0)
 class CalendarDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -977,7 +977,7 @@ class CalendarDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Mathematics", position=0)
+@register_effect(registry=mutable_registry, card_name="Mathematics", position=0)
 class MathematicsDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -1000,7 +1000,7 @@ class MathematicsDogma(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Monotheism", position=0)
+@register_effect(registry=mutable_registry, card_name="Monotheism", position=0)
 class MonotheismDemand(BaseDemand):
     @property
     def symbol(self) -> SymbolType:
@@ -1034,7 +1034,7 @@ class MonotheismDemand(BaseDemand):
             )
 
 
-@register_effect(registry=cards, card_name="Monotheism", position=1)
+@register_effect(registry=mutable_registry, card_name="Monotheism", position=1)
 class MonotheismDogma(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -1050,7 +1050,7 @@ class MonotheismDogma(BaseDogma):
         )
 
 
-@register_effect(registry=cards, card_name="Philosophy", position=0)
+@register_effect(registry=mutable_registry, card_name="Philosophy", position=0)
 class PhilosophyDogma1(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -1069,7 +1069,7 @@ class PhilosophyDogma1(BaseDogma):
             )
 
 
-@register_effect(registry=cards, card_name="Philosophy", position=1)
+@register_effect(registry=mutable_registry, card_name="Philosophy", position=1)
 class PhilosophyDogma2(BaseDogma):
     @property
     def symbol(self) -> SymbolType:
@@ -1089,4 +1089,4 @@ class PhilosophyDogma2(BaseDogma):
             )
 
 
-GLOBAL_CARD_REGISTRY = cards.to_immutable_registry()
+GLOBAL_CARD_REGISTRY = mutable_registry.to_immutable_registry()
