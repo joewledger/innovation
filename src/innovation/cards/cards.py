@@ -56,6 +56,9 @@ class Card(Registerable):
     symbols: List[Symbol]
     effects: List[BaseEffect] = None
 
+    def has_symbol_type(self, symbol_type: SymbolType) -> bool:
+        return any(symbol.symbol_type == symbol_type for symbol in self.symbols)
+
     def __eq__(self, other):
         return super().__eq__(other)
 

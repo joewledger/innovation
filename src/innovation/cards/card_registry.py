@@ -1,5 +1,4 @@
 from src.innovation.utils.registry import (
-    ImmutableRegistry,
     MutableRegistry,
     register_effect,
 )
@@ -283,6 +282,16 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
                 Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
                 Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Engineering",
+            color=Color.RED,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.TOP_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
             ],
         ),
     ]
@@ -1085,6 +1094,50 @@ class PhilosophyDogma2(BaseDogma):
                     allowed_cards=lambda _, __, ___: activating_player.hand,
                     card_location=CardLocation.HAND,
                     card_destination=CardLocation.SCORE_PILE,
+                )
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Engineering", position=0)
+class EngineeringDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, None]:
+        target_castle_cards = {
+            card
+            for card in target_player.top_cards
+            if card.has_symbol_type(SymbolType.CASTLE)
+        }
+        if target_castle_cards:
+            return TransferCard(
+                giving_player=target_player,
+                receiving_player=activating_player,
+                allowed_cards=lambda _, __, ___: target_castle_cards,
+                card_location=CardLocation.BOARD,
+                card_destination=CardLocation.SCORE_PILE,
+                num_cards=len(target_castle_cards),
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Engineering", position=1)
+class EngineeringDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if Color.RED in activating_player.splayable_colors:
+            return Optional(
+                Splay(
+                    target_player=activating_player,
+                    allowed_colors={Color.RED},
+                    allowed_directions={SplayDirection.LEFT},
                 )
             )
 
