@@ -294,6 +294,16 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
             ],
         ),
+        Card(
+            name="Optics",
+            color=Color.RED,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.TOP_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+            ],
+        ),
     ]
 )
 
@@ -1140,6 +1150,45 @@ class EngineeringDogma(BaseDogma):
                     allowed_directions={SplayDirection.LEFT},
                 )
             )
+
+
+@register_effect(registry=mutable_registry, card_name="Optics", position=0)
+class OpticsDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(game_state: GameState, activating_player: Player) -> Draw:
+        players_with_less_points = {
+            player
+            for player in game_state.players
+            if player.score < activating_player.score
+        }
+        transfer_card = (
+            TransferCard(
+                giving_player=activating_player,
+                allowed_receiving_players=players_with_less_points,
+                allowed_cards=lambda _, __, ___: activating_player.score_pile,
+                card_location=CardLocation.SCORE_PILE,
+                card_destination=CardLocation.SCORE_PILE,
+            )
+            if activating_player.score_pile and players_with_less_points
+            else None
+        )
+
+        return Draw(
+            target_player=activating_player,
+            draw_location=lambda _: CardLocation.BOARD,
+            level=3,
+            on_completion=lambda cards: Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.SCORE_PILE,
+                level=4,
+            )
+            if any(card.has_symbol_type(SymbolType.CROWN) for card in cards)
+            else transfer_card,
+        )
 
 
 GLOBAL_CARD_REGISTRY = mutable_registry.to_immutable_registry()
