@@ -117,3 +117,5 @@ def test_optics_dogma(
         )
         assert on_completion.card_location == CardLocation.SCORE_PILE
         assert on_completion.card_destination == CardLocation.SCORE_PILE
+    else:
+        assert on_completion is None
