@@ -66,7 +66,7 @@ def test_archery_demand():
     assert isinstance(on_completion_effect, TransferCard)
 
     assert on_completion_effect.giving_player == target_player
-    assert on_completion_effect.receiving_player == activating_player
+    assert on_completion_effect.allowed_receiving_players == {activating_player}
     assert on_completion_effect.allowed_cards(
         game_state, activating_player, target_player
     ) == {drawn_card}
@@ -115,7 +115,7 @@ def test_oars_demand(
         transferred_card = Mock()
 
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert (
             effect.allowed_cards(game_state, activating_player, target_player)
             == target_player_transferable_hand
@@ -224,7 +224,7 @@ def test_city_states_demand(
 
         assert isinstance(effect, TransferCard)
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert effect.allowed_cards(game_state, activating_player, target_player) == {
             card
             for card in target_player_top_cards

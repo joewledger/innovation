@@ -35,7 +35,7 @@ def test_engineering_demand(top_cards):
     else:
         assert isinstance(effect, TransferCard)
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert (
             effect.allowed_cards(Mock(), activating_player, target_player)
             == transfer_cards

@@ -124,7 +124,7 @@ class Splay(Primitive):
 @dataclass
 class TransferCard(Primitive):
     giving_player: Player
-    receiving_player: Player
+    allowed_receiving_players: Set[Player]
     # function mapping (game_state, activating_player, target_player) -> set of cards that can be transferred
     allowed_cards: game_state_to_card_set_func
     card_location: CardLocation

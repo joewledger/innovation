@@ -51,7 +51,7 @@ def test_construction_demand(hand_size):
     else:
         assert isinstance(effect, TransferCard)
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert (
             effect.allowed_cards(Mock(), activating_player, target_player)
             == target_player.hand
@@ -296,7 +296,7 @@ def test_mapmaking_demand(target_score_pile_ages, should_transfer):
     else:
         assert isinstance(effect, TransferCard)
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert effect.allowed_cards(Mock(), activating_player, target_player) == {
             card for card in target_score_pile if card.age == 1
         }
@@ -386,7 +386,7 @@ def test_monotheism_demand(target_colors, activating_colors, should_transfer):
     else:
         assert isinstance(effect, TransferCard)
         assert effect.giving_player == target_player
-        assert effect.receiving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
         assert effect.allowed_cards(Mock(), activating_player, target_player) == {
             card
             for card in target_top_cards
@@ -453,7 +453,7 @@ def test_philosophy_dogma2(hand):
         operation = effect.operation
         assert isinstance(operation, TransferCard)
         assert operation.giving_player == activating_player
-        assert operation.receiving_player == activating_player
+        assert operation.allowed_receiving_players == {activating_player}
         assert operation.allowed_cards(Mock(), activating_player, None) == hand
         assert operation.card_location == CardLocation.HAND
         assert operation.card_destination == CardLocation.SCORE_PILE

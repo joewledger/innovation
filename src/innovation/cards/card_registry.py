@@ -328,7 +328,7 @@ class ArcheryDemand(BaseDemand):
             level=1,
             on_completion=lambda _: TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=ArcheryDemand.transfer_card_rule,
                 card_location=CardLocation.HAND,
                 card_destination=CardLocation.HAND,
@@ -379,7 +379,7 @@ class OarsDemand(BaseDemand):
         if transferable_cards:
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: transferable_cards,
                 card_location=CardLocation.HAND,
                 card_destination=CardLocation.SCORE_PILE,
@@ -719,7 +719,7 @@ class CityStatesDemand(BaseDemand):
         ):
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: top_cards_with_castles,
                 card_location=CardLocation.BOARD,
                 card_destination=CardLocation.BOARD,
@@ -776,7 +776,7 @@ class ConstructionDemand(BaseDemand):
         if target_player.hand:
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: target_player.hand,
                 card_location=CardLocation.HAND,
                 card_destination=CardLocation.HAND,
@@ -949,7 +949,7 @@ class MapmakingDemand(BaseDemand):
         if target_cards:
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: target_cards,
                 card_location=CardLocation.SCORE_PILE,
                 card_destination=CardLocation.SCORE_PILE,
@@ -1026,7 +1026,7 @@ class MonotheismDemand(BaseDemand):
         if allowed_colors:
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: {
                     card
                     for card in target_player.top_cards
@@ -1090,7 +1090,7 @@ class PhilosophyDogma2(BaseDogma):
             return Optional(
                 TransferCard(
                     giving_player=activating_player,
-                    receiving_player=activating_player,
+                    allowed_receiving_players={activating_player},
                     allowed_cards=lambda _, __, ___: activating_player.hand,
                     card_location=CardLocation.HAND,
                     card_destination=CardLocation.SCORE_PILE,
@@ -1116,7 +1116,7 @@ class EngineeringDemand(BaseDemand):
         if target_castle_cards:
             return TransferCard(
                 giving_player=target_player,
-                receiving_player=activating_player,
+                allowed_receiving_players={activating_player},
                 allowed_cards=lambda _, __, ___: target_castle_cards,
                 card_location=CardLocation.BOARD,
                 card_destination=CardLocation.SCORE_PILE,
