@@ -3,6 +3,7 @@ from src.innovation.cards.card_registry import (
     EngineeringDogma,
     OpticsDogma,
     MachineryDemand,
+    MachineryDogma,
 )
 from src.innovation.cards.cards import SymbolType, Color, SplayDirection
 from src.innovation.cards.card_effects import (
@@ -174,3 +175,53 @@ def test_machinery_demand(activating_hand, target_hand):
         assert effect.num_cards_receiving == len(highest_target_cards)
         assert effect.giving_location == CardLocation.HAND
         assert effect.receiving_location == CardLocation.HAND
+
+
+@pytest.mark.parametrize(
+    "hand",
+    [
+        set(),
+        {Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CASTLE)},
+        {Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CASTLE)},
+        {
+            Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CASTLE),
+            Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CASTLE),
+        },
+    ],
+)
+@pytest.mark.parametrize(
+    "splayable_colors", [set(), {Color.RED}, {Color.YELLOW}, {Color.RED, Color.YELLOW}]
+)
+def test_machinery_dogma(hand, splayable_colors):
+    machinery = MachineryDogma()
+    assert machinery.symbol == SymbolType.LEAF
+
+    cards_with_castles = {
+        card for card in hand if card.has_symbol_type(SymbolType.CASTLE)
+    }
+    activating_player = Mock(hand=hand, splayable_colors=splayable_colors)
+
+    def validate_splay(optional):
+        assert isinstance(optional, Optional)
+        splay = optional.operation
+        assert isinstance(splay, Splay)
+        assert splay.target_player == activating_player
+        assert splay.allowed_directions == {SplayDirection.LEFT}
+        assert splay.allowed_colors == {Color.RED}
+
+    effect = machinery.dogma_effect(Mock(), activating_player)
+    if cards_with_castles:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == activating_player
+        assert effect.allowed_receiving_players == {activating_player}
+        assert (
+            effect.allowed_cards(Mock(), activating_player, None) == cards_with_castles
+        )
+        assert effect.card_location == CardLocation.HAND
+        assert effect.card_destination == CardLocation.SCORE_PILE
+        assert effect.num_cards == 1
+        validate_splay(effect.on_completion(Mock()))
+    elif Color.RED in splayable_colors:
+        validate_splay(effect)
+    else:
+        assert effect is None

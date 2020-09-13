@@ -1227,4 +1227,41 @@ class MachineryDemand(BaseDemand):
             )
 
 
+@register_effect(registry=mutable_registry, card_name="Machinery", position=1)
+class MachineryDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def dogma_effect(
+        _, activating_player: Player
+    ) -> Union[TransferCard, Optional, None]:
+        cards_with_castles = {
+            card
+            for card in activating_player.hand
+            if card.has_symbol_type(SymbolType.CASTLE)
+        }
+
+        splay = Optional(
+            Splay(
+                target_player=activating_player,
+                allowed_colors={Color.RED},
+                allowed_directions={SplayDirection.LEFT},
+            )
+        )
+
+        if cards_with_castles:
+            return TransferCard(
+                giving_player=activating_player,
+                allowed_receiving_players={activating_player},
+                allowed_cards=lambda _, __, ___: cards_with_castles,
+                card_location=CardLocation.HAND,
+                card_destination=CardLocation.SCORE_PILE,
+                on_completion=lambda _: splay,
+            )
+        elif Color.RED in activating_player.splayable_colors:
+            return splay
+
+
 GLOBAL_CARD_REGISTRY = mutable_registry.to_immutable_registry()
