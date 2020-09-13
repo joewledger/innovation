@@ -19,7 +19,7 @@ from mock import Mock
 def test_player_board_valid_melds(card_names):
     # Given
     cards = [GLOBAL_CARD_REGISTRY.registry.get(card_name) for card_name in card_names]
-    player = Player(dict(), set(cards), set(), set())
+    player = Player(0, dict(), set(cards), set(), set())
     assert all(card in player.hand for card in cards)
 
     # When
@@ -53,7 +53,7 @@ def test_player_board_valid_melds(card_names):
     ],
 )
 def test_player_score(score_pile_cards, expected_score):
-    player = Player({}, set(), set(score_pile_cards), set())
+    player = Player(0, {}, set(), set(score_pile_cards), set())
     assert player.score == expected_score
 
 
@@ -69,7 +69,7 @@ def test_player_score(score_pile_cards, expected_score):
     ],
 )
 def test_player_max_age_cards(cards, expected_max_age):
-    player = Player({}, set(cards), set(), set())
+    player = Player(0, {}, set(cards), set(), set())
     for card in cards:
         player.meld(card)
 
@@ -156,7 +156,7 @@ def test_player_max_age_cards(cards, expected_max_age):
     ],
 )
 def test_symbol_count(board, expected_symbols):
-    player = Player(board, set(), set(), set())
+    player = Player(0, board, set(), set(), set())
     actual_symbols = player.symbol_count
 
     for symbol, count in expected_symbols.items():
@@ -196,5 +196,25 @@ def test_symbol_count(board, expected_symbols):
     ],
 )
 def test_splayable_colors(board, expected_splayable_colors):
-    player = Player(board, set(), set(), set())
+    player = Player(0, board, set(), set(), set())
     assert player.splayable_colors == expected_splayable_colors
+
+
+@pytest.mark.parametrize(
+    "hand, expected_age, expected_num_cards",
+    [
+        (set(), None, 0),
+        ({Mock(age=1)}, 1, 1),
+        ({Mock(age=5)}, 5, 1),
+        ({Mock(age=5), Mock(age=1)}, 5, 1),
+        ({Mock(age=5), Mock(age=5), Mock(age=1)}, 5, 2),
+    ],
+)
+def test_highest_cards_in_hand(hand, expected_age, expected_num_cards):
+    player = Player(0, {}, hand, set(), set())
+    highest_cards = player.highest_cards_in_hand
+
+    assert len(highest_cards) == expected_num_cards
+    assert all(card.age == list(highest_cards)[0].age for card in highest_cards)
+    if expected_age:
+        assert list(highest_cards)[0].age == expected_age

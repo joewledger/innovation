@@ -13,6 +13,7 @@ from typing import Set, Dict
 
 @dataclass
 class Player:
+    id: int
     board: Dict[Color, CardStack]
     hand: Set[Card]
     score_pile: Set[Card]
@@ -28,6 +29,14 @@ class Player:
             card_stack.top_card
             for card_stack in self.board.values()
             if not card_stack.is_empty
+        }
+
+    @property
+    def highest_cards_in_hand(self) -> Set[Card]:
+        return {
+            card
+            for card in self.hand
+            if card.age == max(self.hand, key=lambda c: c.age).age
         }
 
     @property
@@ -67,3 +76,9 @@ class Player:
 
         self.board[color].stack.append(card)
         self.hand.remove(card)
+
+    def __eq__(self, other):
+        return isinstance(other, Player) and self.id == other.id
+
+    def __hash__(self):
+        return self.id

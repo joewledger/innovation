@@ -2,6 +2,7 @@ from src.innovation.cards.card_registry import (
     EngineeringDemand,
     EngineeringDogma,
     OpticsDogma,
+    MachineryDemand,
 )
 from src.innovation.cards.cards import SymbolType, Color, SplayDirection
 from src.innovation.cards.card_effects import (
@@ -10,7 +11,9 @@ from src.innovation.cards.card_effects import (
     Splay,
     TransferCard,
     CardLocation,
+    ExchangeCards,
 )
+from src.innovation.players.players import Player
 import pytest
 from mock import Mock
 
@@ -119,3 +122,55 @@ def test_optics_dogma(
         assert on_completion.card_destination == CardLocation.SCORE_PILE
     else:
         assert on_completion is None
+
+
+@pytest.mark.parametrize(
+    "activating_hand, target_hand",
+    [
+        (set(), set()),
+        ({Mock(age=1)}, set()),
+        (set(), {Mock(age=1)}),
+        ({Mock(age=1)}, {Mock(age=1)}),
+        ({Mock(age=2)}, {Mock(age=1)}),
+        ({Mock(age=1)}, {Mock(age=2)}),
+        ({Mock(age=1), Mock(age=1)}, {Mock(age=2)}),
+    ],
+)
+def test_machinery_demand(activating_hand, target_hand):
+    machinery = MachineryDemand()
+    assert machinery.symbol == SymbolType.LEAF
+
+    activating_player = Player(0, {}, activating_hand, set(), set())
+    target_player = Player(0, {}, target_hand, set(), set())
+
+    highest_activating_cards = {
+        card
+        for card in activating_hand
+        if card.age == max(activating_hand, key=lambda c: c.age).age
+    }
+    highest_target_cards = {
+        card
+        for card in target_hand
+        if card.age == max(target_hand, key=lambda c: c.age).age
+    }
+
+    effect = machinery.demand_effect(Mock(), activating_player, target_player)
+
+    if not (activating_hand or target_hand):
+        assert effect is None
+    else:
+        assert isinstance(effect, ExchangeCards)
+        assert effect.allowed_giving_player == {activating_player}
+        assert effect.allowed_receiving_player == {target_player}
+        assert (
+            effect.allowed_giving_cards(Mock(), activating_player, target_player)
+            == highest_activating_cards
+        )
+        assert (
+            effect.allowed_receiving_cards(Mock(), activating_player, target_player)
+            == highest_target_cards
+        )
+        assert effect.num_cards_giving == len(highest_activating_cards)
+        assert effect.num_cards_receiving == len(highest_target_cards)
+        assert effect.giving_location == CardLocation.HAND
+        assert effect.receiving_location == CardLocation.HAND

@@ -304,6 +304,16 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
             ],
         ),
+        Card(
+            name="Machinery",
+            color=Color.YELLOW,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.TOP_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
     ]
 )
 
@@ -1189,6 +1199,32 @@ class OpticsDogma(BaseDogma):
             if any(card.has_symbol_type(SymbolType.CROWN) for card in cards)
             else transfer_card,
         )
+
+
+@register_effect(registry=mutable_registry, card_name="Machinery", position=0)
+class MachineryDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LEAF
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[ExchangeCards, None]:
+        highest_activating_player_cards = activating_player.highest_cards_in_hand
+        highest_target_player_cards = target_player.highest_cards_in_hand
+
+        if highest_activating_player_cards or highest_target_player_cards:
+            return ExchangeCards(
+                allowed_giving_player={activating_player},
+                allowed_receiving_player={target_player},
+                allowed_giving_cards=lambda _, __, ___: highest_activating_player_cards,
+                allowed_receiving_cards=lambda _, __, ___: highest_target_player_cards,
+                num_cards_giving=len(highest_activating_player_cards),
+                num_cards_receiving=len(highest_target_player_cards),
+                giving_location=CardLocation.HAND,
+                receiving_location=CardLocation.HAND,
+            )
 
 
 GLOBAL_CARD_REGISTRY = mutable_registry.to_immutable_registry()
