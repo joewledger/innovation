@@ -7,6 +7,7 @@ from src.innovation.cards.cards import (
     Symbol,
     SymbolType,
     Position,
+    get_highest_cards,
 )
 from collections import deque
 import pytest
@@ -212,7 +213,7 @@ def test_splayable_colors(board, expected_splayable_colors):
 )
 def test_highest_cards_in_hand(hand, expected_age, expected_num_cards):
     player = Player(0, {}, hand, set(), set())
-    highest_cards = player.highest_cards_in_hand
+    highest_cards = get_highest_cards(player.hand)
 
     assert len(highest_cards) == expected_num_cards
     assert all(card.age == list(highest_cards)[0].age for card in highest_cards)

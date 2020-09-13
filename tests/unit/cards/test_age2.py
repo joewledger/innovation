@@ -13,7 +13,12 @@ from src.innovation.cards.card_registry import (
     PhilosophyDogma1,
     PhilosophyDogma2,
 )
-from src.innovation.cards.cards import SymbolType, Color, SplayDirection
+from src.innovation.cards.cards import (
+    SymbolType,
+    Color,
+    SplayDirection,
+    get_highest_cards,
+)
 from src.innovation.cards.card_effects import (
     Achieve,
     Draw,
@@ -203,24 +208,14 @@ def test_canal_building(hand, score_pile):
         assert isinstance(operation, ExchangeCards)
         assert operation.allowed_giving_player == {activating_player}
         assert operation.allowed_receiving_player == {activating_player}
-        assert operation.allowed_giving_cards(Mock(), activating_player, None) == {
-            card for card in hand if card.age == max(hand, key=lambda c: c.age)
-        }
-        assert operation.allowed_receiving_cards(Mock(), activating_player, None) == {
-            card
-            for card in score_pile
-            if card.age == max(score_pile, key=lambda c: c.age)
-        }
-        assert operation.num_cards_giving == len(
-            {card for card in hand if card.age == max(hand, key=lambda c: c.age)}
-        )
-        assert operation.num_cards_receiving == len(
-            {
-                card
-                for card in score_pile
-                if card.age == max(score_pile, key=lambda c: c.age)
-            }
-        )
+        assert operation.allowed_giving_cards(
+            Mock(), activating_player, None
+        ) == get_highest_cards(hand)
+        assert operation.allowed_receiving_cards(
+            Mock(), activating_player, None
+        ) == get_highest_cards(score_pile)
+        assert operation.num_cards_giving == len(get_highest_cards(hand))
+        assert operation.num_cards_receiving == len(get_highest_cards(score_pile))
         assert operation.giving_location == CardLocation.HAND
         assert operation.receiving_location == CardLocation.SCORE_PILE
 

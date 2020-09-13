@@ -32,14 +32,6 @@ class Player:
         }
 
     @property
-    def highest_cards_in_hand(self) -> Set[Card]:
-        return {
-            card
-            for card in self.hand
-            if card.age == max(self.hand, key=lambda c: c.age).age
-        }
-
-    @property
     def max_age_top_card(self) -> int:
         if len(self.top_cards) == 0:
             return 1

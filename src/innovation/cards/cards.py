@@ -122,3 +122,11 @@ class CardStack:
 
 def cards_with_symbol(cards: Set[Card], symbol: SymbolType) -> Set[Card]:
     return {card for card in cards if symbol in (s.symbol_type for s in card.symbols)}
+
+
+def get_highest_cards(cards: Set[Card]):
+    return {card for card in cards if card.age == max(cards, key=lambda c: c.age).age}
+
+
+def get_lowest_cards(cards: Set[Card]) -> Set[Card]:
+    return {card for card in cards if card.age == min(cards, key=lambda c: c.age).age}

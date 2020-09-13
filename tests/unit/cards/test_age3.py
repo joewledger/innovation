@@ -4,8 +4,15 @@ from src.innovation.cards.card_registry import (
     OpticsDogma,
     MachineryDemand,
     MachineryDogma,
+    MedicineDemand,
 )
-from src.innovation.cards.cards import SymbolType, Color, SplayDirection
+from src.innovation.cards.cards import (
+    SymbolType,
+    Color,
+    SplayDirection,
+    get_highest_cards,
+    get_lowest_cards,
+)
 from src.innovation.cards.card_effects import (
     Draw,
     Optional,
@@ -144,16 +151,8 @@ def test_machinery_demand(activating_hand, target_hand):
     activating_player = Player(0, {}, activating_hand, set(), set())
     target_player = Player(0, {}, target_hand, set(), set())
 
-    highest_activating_cards = {
-        card
-        for card in activating_hand
-        if card.age == max(activating_hand, key=lambda c: c.age).age
-    }
-    highest_target_cards = {
-        card
-        for card in target_hand
-        if card.age == max(target_hand, key=lambda c: c.age).age
-    }
+    highest_activating_cards = get_highest_cards(activating_hand)
+    highest_target_cards = get_highest_cards(target_hand)
 
     effect = machinery.demand_effect(Mock(), activating_player, target_player)
 
@@ -225,3 +224,41 @@ def test_machinery_dogma(hand, splayable_colors):
         validate_splay(effect)
     else:
         assert effect is None
+
+
+@pytest.mark.parametrize(
+    "activating_score_pile, target_score_pile",
+    [
+        (set(), set()),
+        ({Mock(age=1)}, set()),
+        (set(), {Mock(age=1)}),
+        ({Mock(age=1)}, {Mock(age=1)}),
+        ({Mock(age=2), Mock(age=2), Mock(age=1)}, {Mock(age=1)}),
+        ({Mock(age=1)}, {Mock(age=2), Mock(age=2), Mock(age=1)}),
+    ],
+)
+def test_medicine_demand(activating_score_pile, target_score_pile):
+    medicine = MedicineDemand()
+    assert medicine.symbol == SymbolType.LEAF
+
+    activating_player = Mock(score_pile=activating_score_pile)
+    target_player = Mock(score_pile=target_score_pile)
+
+    effect = medicine.demand_effect(Mock(), activating_player, target_player)
+
+    if not (activating_score_pile or target_score_pile):
+        assert effect is None
+    else:
+        assert isinstance(effect, ExchangeCards)
+        assert effect.allowed_giving_player == {activating_player}
+        assert effect.allowed_receiving_player == {target_player}
+        assert effect.allowed_giving_cards(
+            Mock(), activating_player, target_player
+        ) == get_lowest_cards(activating_score_pile)
+        assert effect.allowed_receiving_cards(
+            Mock(), activating_player, target_player
+        ) == get_highest_cards(target_score_pile)
+        assert effect.num_cards_giving == len(get_lowest_cards(activating_score_pile))
+        assert effect.num_cards_receiving == len(get_highest_cards(target_score_pile))
+        assert effect.giving_location == CardLocation.SCORE_PILE
+        assert effect.receiving_location == CardLocation.SCORE_PILE
