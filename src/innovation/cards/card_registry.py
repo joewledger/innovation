@@ -1290,8 +1290,8 @@ class MedicineDemand(BaseDemand):
                 allowed_receiving_player={target_player},
                 allowed_giving_cards=lambda _, __, ___: lowest_activating_cards,
                 allowed_receiving_cards=lambda _, __, ___: highest_target_cards,
-                num_cards_giving=len(lowest_activating_cards),
-                num_cards_receiving=len(highest_target_cards),
+                num_cards_giving=min(1, len(activating_player.score_pile)),
+                num_cards_receiving=min(1, len(target_player.score_pile)),
                 giving_location=CardLocation.SCORE_PILE,
                 receiving_location=CardLocation.SCORE_PILE,
             )

@@ -258,7 +258,7 @@ def test_medicine_demand(activating_score_pile, target_score_pile):
         assert effect.allowed_receiving_cards(
             Mock(), activating_player, target_player
         ) == get_highest_cards(target_score_pile)
-        assert effect.num_cards_giving == len(get_lowest_cards(activating_score_pile))
-        assert effect.num_cards_receiving == len(get_highest_cards(target_score_pile))
+        assert effect.num_cards_giving == min(1, len(activating_player.score_pile))
+        assert effect.num_cards_receiving == min(1, len(target_player.score_pile))
         assert effect.giving_location == CardLocation.SCORE_PILE
         assert effect.receiving_location == CardLocation.SCORE_PILE
