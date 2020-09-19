@@ -326,6 +326,16 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
             ],
         ),
+        Card(
+            name="Compass",
+            color=Color.GREEN,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
+            ],
+        ),
     ]
 )
 
@@ -1294,6 +1304,60 @@ class MedicineDemand(BaseDemand):
                 num_cards_receiving=min(1, len(target_player.score_pile)),
                 giving_location=CardLocation.SCORE_PILE,
                 receiving_location=CardLocation.SCORE_PILE,
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Compass", position=0)
+class CompassDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def cards_without_leaf(_, activating_player: Player, __) -> Set[Card]:
+        return {
+            card
+            for card in activating_player.top_cards
+            if not card.has_symbol_type(SymbolType.LEAF)
+        }
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, None]:
+        target_transferable_cards = {
+            card
+            for card in target_player.top_cards
+            if card.has_symbol_type(SymbolType.LEAF) and card.color != Color.GREEN
+        }
+        activating_transferable_cards = {
+            card
+            for card in activating_player.top_cards
+            if not card.has_symbol_type(SymbolType.LEAF)
+        }
+
+        if target_transferable_cards:
+            return TransferCard(
+                giving_player=target_player,
+                allowed_receiving_players={activating_player},
+                allowed_cards=lambda _, __, ___: target_transferable_cards,
+                card_location=CardLocation.BOARD,
+                card_destination=CardLocation.BOARD,
+                on_completion=lambda _: TransferCard(
+                    giving_player=activating_player,
+                    allowed_receiving_players={target_player},
+                    allowed_cards=CompassDemand.cards_without_leaf,
+                    card_location=CardLocation.BOARD,
+                    card_destination=CardLocation.BOARD,
+                ),
+            )
+        elif activating_transferable_cards:
+            return TransferCard(
+                giving_player=activating_player,
+                allowed_receiving_players={target_player},
+                allowed_cards=lambda _, __, ___: activating_transferable_cards,
+                card_location=CardLocation.BOARD,
+                card_destination=CardLocation.BOARD,
             )
 
 

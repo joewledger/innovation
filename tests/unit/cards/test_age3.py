@@ -5,6 +5,7 @@ from src.innovation.cards.card_registry import (
     MachineryDemand,
     MachineryDogma,
     MedicineDemand,
+    CompassDemand,
 )
 from src.innovation.cards.cards import (
     SymbolType,
@@ -262,3 +263,86 @@ def test_medicine_demand(activating_score_pile, target_score_pile):
         assert effect.num_cards_receiving == min(1, len(target_player.score_pile))
         assert effect.giving_location == CardLocation.SCORE_PILE
         assert effect.receiving_location == CardLocation.SCORE_PILE
+
+
+@pytest.mark.parametrize(
+    "activating_top_cards",
+    [
+        set(),
+        {Mock(has_symbol_type=lambda symbol: symbol == SymbolType.LEAF)},
+        {Mock(has_symbol_type=lambda symbol: symbol != SymbolType.LEAF)},
+    ],
+)
+@pytest.mark.parametrize(
+    "target_top_cards",
+    [
+        set(),
+        {
+            Mock(
+                has_symbol_type=lambda symbol: symbol == SymbolType.LEAF,
+                color=Color.RED,
+            )
+        },
+        {
+            Mock(
+                has_symbol_type=lambda symbol: symbol == SymbolType.LEAF,
+                color=Color.GREEN,
+            )
+        },
+        {Mock(has_symbol_type=lambda symbol: symbol != SymbolType.LEAF)},
+    ],
+)
+def test_compass_demand(activating_top_cards, target_top_cards):
+    compass = CompassDemand()
+    assert compass.symbol == SymbolType.CROWN
+
+    activating_player = Mock(top_cards=activating_top_cards)
+    target_player = Mock(top_cards=target_top_cards)
+
+    effect = compass.demand_effect(Mock(), activating_player, target_player)
+
+    target_transferable_cards = {
+        card
+        for card in target_top_cards
+        if card.has_symbol_type(SymbolType.LEAF) and not card.color == Color.GREEN
+    }
+
+    activating_transferable_cards = {
+        card
+        for card in activating_top_cards
+        if not card.has_symbol_type(SymbolType.LEAF)
+    }
+
+    if not target_transferable_cards and not activating_transferable_cards:
+        assert effect is None
+    elif target_transferable_cards:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == target_player
+        assert effect.allowed_receiving_players == {activating_player}
+        assert (
+            effect.allowed_cards(Mock(), activating_player, target_player)
+            == target_transferable_cards
+        )
+        assert effect.card_location == CardLocation.BOARD
+        assert effect.card_destination == CardLocation.BOARD
+
+        on_completion = effect.on_completion(Mock())
+        assert isinstance(on_completion, TransferCard)
+        assert on_completion.giving_player == activating_player
+        assert on_completion.allowed_receiving_players == {target_player}
+        assert (
+            on_completion.allowed_cards(Mock(), activating_player, target_player)
+            == activating_transferable_cards
+        )
+        assert on_completion.card_location == CardLocation.BOARD
+        assert on_completion.card_destination == CardLocation.BOARD
+    else:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == activating_player
+        assert effect.allowed_receiving_players == {target_player}
+        assert (
+            effect.allowed_cards(Mock(), activating_player, target_player)
+            == activating_transferable_cards
+        )
+        assert effect.card_location == CardLocation.BOARD
+        assert effect.card_destination == CardLocation.BOARD
