@@ -6,6 +6,8 @@ from src.innovation.cards.card_registry import (
     MachineryDogma,
     MedicineDemand,
     CompassDemand,
+    PaperDogma1,
+    PaperDogma2,
 )
 from src.innovation.cards.cards import (
     SymbolType,
@@ -346,3 +348,73 @@ def test_compass_demand(activating_top_cards, target_top_cards):
         )
         assert effect.card_location == CardLocation.BOARD
         assert effect.card_destination == CardLocation.BOARD
+
+
+@pytest.mark.parametrize(
+    "splayable_colors, should_splay",
+    [
+        (set(), False),
+        ({Color.RED}, False),
+        ({Color.YELLOW}, False),
+        ({Color.PURPLE}, False),
+        ({Color.GREEN}, True),
+        ({Color.BLUE}, True),
+        ({Color.GREEN, Color.BLUE}, True),
+    ],
+)
+def test_paper_dogma1(splayable_colors, should_splay):
+    paper = PaperDogma1()
+    assert paper.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock(splayable_colors=splayable_colors)
+    effect = paper.dogma_effect(Mock(), activating_player)
+
+    if not should_splay:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Splay)
+        assert operation.target_player == activating_player
+        assert operation.allowed_colors == {
+            color for color in {Color.GREEN, Color.BLUE} if color in splayable_colors
+        }
+        assert operation.allowed_directions == {SplayDirection.LEFT}
+
+
+@pytest.mark.parametrize(
+    "board, num_draws",
+    [
+        ({}, 0),
+        ({Color.RED: Mock(splay=SplayDirection.LEFT)}, 1),
+        (
+            {
+                Color.RED: Mock(splay=SplayDirection.LEFT),
+                Color.BLUE: Mock(splay=SplayDirection.NONE),
+            },
+            1,
+        ),
+        (
+            {
+                Color.RED: Mock(splay=SplayDirection.LEFT),
+                Color.BLUE: Mock(splay=SplayDirection.LEFT),
+            },
+            2,
+        ),
+    ],
+)
+def test_paper_dogma2(board, num_draws):
+    paper = PaperDogma2()
+    assert paper.symbol == SymbolType.LIGHT_BULB
+
+    activating_player = Mock(board=board)
+    effect = paper.dogma_effect(Mock(), activating_player)
+
+    if not num_draws:
+        assert effect is None
+    else:
+        assert isinstance(effect, Draw)
+        assert effect.target_player == activating_player
+        assert effect.draw_location(Mock()) == CardLocation.HAND
+        assert effect.level == 4
+        assert effect.num_cards == num_draws

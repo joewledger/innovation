@@ -336,6 +336,16 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.LEAF, Position.BOTTOM_RIGHT),
             ],
         ),
+        Card(
+            name="Paper",
+            color=Color.GREEN,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
     ]
 )
 
@@ -1358,6 +1368,49 @@ class CompassDemand(BaseDemand):
                 allowed_cards=lambda _, __, ___: activating_transferable_cards,
                 card_location=CardLocation.BOARD,
                 card_destination=CardLocation.BOARD,
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Paper", position=0)
+class PaperDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        all_splayable_colors = activating_player.splayable_colors
+        effect_splayable_colors = all_splayable_colors & {Color.BLUE, Color.GREEN}
+
+        if effect_splayable_colors:
+            return Optional(
+                Splay(
+                    target_player=activating_player,
+                    allowed_colors=effect_splayable_colors,
+                    allowed_directions={SplayDirection.LEFT},
+                )
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Paper", position=1)
+class PaperDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Draw, None]:
+        num_left_splays = sum(
+            1
+            for card_stack in activating_player.board.values()
+            if card_stack.splay == SplayDirection.LEFT
+        )
+        if num_left_splays > 0:
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda _: CardLocation.HAND,
+                level=4,
+                num_cards=num_left_splays,
             )
 
 
