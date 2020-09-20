@@ -8,6 +8,13 @@ from src.innovation.cards.card_registry import (
     CompassDemand,
     PaperDogma1,
     PaperDogma2,
+    AlchemyDogma1,
+    AlchemyDogma2,
+    TranslationDogma1,
+    TranslationDogma2,
+    EducationDogma,
+    FeudalismDemand,
+    FeudalismDogma,
 )
 from src.innovation.cards.cards import (
     SymbolType,
@@ -23,7 +30,12 @@ from src.innovation.cards.card_effects import (
     TransferCard,
     CardLocation,
     ExchangeCards,
+    Return,
+    Meld,
+    Score,
+    Achieve,
 )
+from src.innovation.cards.achievement_registry import GLOBAL_ACHIEVEMENTS_REGISTRY
 from src.innovation.players.players import Player
 import pytest
 from mock import Mock
@@ -418,3 +430,246 @@ def test_paper_dogma2(board, num_draws):
         assert effect.draw_location(Mock()) == CardLocation.HAND
         assert effect.level == 4
         assert effect.num_cards == num_draws
+
+
+@pytest.mark.parametrize(
+    "num_castles, num_draws, drawn_colors",
+    [
+        (0, 0, set()),
+        (1, 0, set()),
+        (2, 0, set()),
+        (3, 1, {Color.RED}),
+        (3, 1, {Color.BLUE}),
+        (6, 2, {Color.RED, Color.RED}),
+        (6, 2, {Color.BLUE, Color.RED}),
+        (6, 2, {Color.BLUE, Color.PURPLE}),
+    ],
+)
+def test_alchemy_dogma1(num_castles, num_draws, drawn_colors):
+    alchemy = AlchemyDogma1()
+    assert alchemy.symbol == SymbolType.CASTLE
+
+    hand = {Mock() for _ in range(3)}
+    activating_player = Mock(hand=hand, symbol_count={SymbolType.CASTLE: num_castles})
+
+    effect = alchemy.dogma_effect(Mock(), activating_player)
+    if not num_draws:
+        assert effect is None
+    else:
+        assert isinstance(effect, Draw)
+        assert effect.target_player == activating_player
+
+        drawn_cards = {Mock(color=color) for color in drawn_colors}
+        red_in_drawn_cards = any(card.color == Color.RED for card in drawn_cards)
+        draw_location = effect.draw_location(drawn_cards)
+        assert draw_location == (
+            CardLocation.DECK if red_in_drawn_cards else CardLocation.HAND
+        )
+
+        assert effect.level == 4
+        assert effect.num_cards == num_draws
+        assert effect.reveal is True
+
+        on_completion = effect.on_completion(drawn_cards)
+        if red_in_drawn_cards:
+            assert isinstance(on_completion, Return)
+            assert on_completion.allowed_cards(Mock(), activating_player, None) == hand
+            assert on_completion.min_cards == len(hand)
+            assert on_completion.max_cards == len(hand)
+        else:
+            assert on_completion is None
+
+
+@pytest.mark.parametrize("hand_size", list(range(3)))
+def test_alchemy_dogma2(hand_size):
+    alchemy = AlchemyDogma2()
+    assert alchemy.symbol == SymbolType.CASTLE
+
+    hand = {Mock() for _ in range(hand_size)}
+    activating_player = Mock(hand=hand)
+    effect = alchemy.dogma_effect(Mock(), activating_player)
+
+    if not hand_size:
+        assert effect is None
+    else:
+        assert isinstance(effect, Meld)
+        assert effect.allowed_cards(Mock(), activating_player, None) == hand
+        assert effect.min_cards == 1
+        assert effect.max_cards == 1
+
+        melded_card = {list(hand)[0]}
+        on_completion = effect.on_completion(melded_card)
+        if hand - melded_card:
+            assert isinstance(on_completion, Score)
+            assert (
+                on_completion.allowed_cards(Mock(), activating_player, None)
+                == hand - melded_card
+            )
+        else:
+            assert on_completion is None
+
+
+@pytest.mark.parametrize("score_pile_size", list(range(3)))
+def test_translation_dogma1(score_pile_size):
+    translation = TranslationDogma1()
+    assert translation.symbol == SymbolType.CROWN
+
+    score_pile = {Mock() for _ in range(score_pile_size)}
+    activating_player = Mock(score_pile=score_pile)
+    effect = translation.dogma_effect(Mock(), activating_player)
+
+    if not score_pile:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Meld)
+        assert operation.allowed_cards(Mock(), activating_player, None) == score_pile
+        assert operation.min_cards == len(score_pile)
+        assert operation.max_cards == len(score_pile)
+        assert operation.card_location == CardLocation.SCORE_PILE
+        assert operation.card_destination == CardLocation.BOARD
+
+
+@pytest.mark.parametrize(
+    "top_cards, should_achieve",
+    [
+        (set(), True),
+        ({Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CROWN)}, False),
+        ({Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CROWN)}, True),
+        (
+            {
+                Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CROWN),
+                Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CROWN),
+            },
+            False,
+        ),
+        (
+            {
+                Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CROWN)
+                for _ in range(5)
+            },
+            True,
+        ),
+    ],
+)
+def test_translation_dogma2(top_cards, should_achieve):
+    translation = TranslationDogma2()
+    assert translation.symbol == SymbolType.CROWN
+
+    activating_player = Mock(top_cards=top_cards)
+    effect = translation.dogma_effect(Mock(), activating_player)
+
+    if not should_achieve:
+        assert effect is None
+    else:
+        assert isinstance(effect, Achieve)
+        assert effect.achievement == GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("World")
+
+
+@pytest.mark.parametrize(
+    "score_pile_ages, expected_draw_age",
+    [(set(), None), ({1}, None), ({1, 1}, 3), ({2, 1}, 3), ({7, 1}, 3), ({7, 4}, 6)],
+)
+def test_education_dogma(score_pile_ages, expected_draw_age):
+    education = EducationDogma()
+    assert education.symbol == SymbolType.LIGHT_BULB
+
+    score_pile = {Mock(age=age) for age in score_pile_ages}
+    activating_player = Mock(score_pile=score_pile)
+    effect = education.dogma_effect(Mock(), activating_player)
+
+    if not score_pile:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Return)
+        assert operation.allowed_cards(
+            Mock(), activating_player, None
+        ) == get_highest_cards(score_pile)
+        assert operation.card_location == CardLocation.SCORE_PILE
+        assert operation.card_destination == CardLocation.DECK
+
+        returned_cards = {list(get_highest_cards(score_pile))[0]}
+        on_completion = operation.on_completion(returned_cards)
+
+        if score_pile - returned_cards:
+            assert isinstance(on_completion, Draw)
+            assert on_completion.target_player == activating_player
+            assert on_completion.draw_location(Mock()) == CardLocation.HAND
+            assert (
+                on_completion.level
+                == list(get_highest_cards(score_pile - returned_cards))[0].age + 2
+            )
+        else:
+            assert on_completion is None
+
+
+@pytest.mark.parametrize(
+    "target_player_hand, should_transfer",
+    [
+        (set(), False),
+        ({Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CASTLE)}, False),
+        ({Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CASTLE)}, True),
+        (
+            {
+                Mock(has_symbol_type=lambda symbol: symbol == SymbolType.CASTLE),
+                Mock(has_symbol_type=lambda symbol: symbol != SymbolType.CASTLE),
+            },
+            True,
+        ),
+    ],
+)
+def test_feudalism_demand(target_player_hand, should_transfer):
+    feudalism = FeudalismDemand()
+    assert feudalism.symbol == SymbolType.CASTLE
+
+    activating_player = Mock()
+    target_player = Mock(hand=target_player_hand)
+    effect = feudalism.demand_effect(Mock(), activating_player, target_player)
+
+    if not should_transfer:
+        assert effect is None
+    else:
+        assert isinstance(effect, TransferCard)
+        assert effect.giving_player == target_player
+        assert effect.allowed_receiving_players == {activating_player}
+        assert effect.allowed_cards(Mock(), activating_player, target_player) == {
+            card
+            for card in target_player_hand
+            if card.has_symbol_type(SymbolType.CASTLE)
+        }
+        assert effect.card_location == CardLocation.HAND
+        assert effect.card_destination == CardLocation.HAND
+
+
+@pytest.mark.parametrize(
+    "splayable_colors",
+    [
+        set(),
+        {Color.RED},
+        {Color.YELLOW},
+        {Color.PURPLE},
+        {Color.RED, Color.BLUE},
+        {Color.YELLOW, Color.RED},
+        {Color.YELLOW, Color.PURPLE},
+    ],
+)
+def test_feudalism_dogma(splayable_colors):
+    feudalism = FeudalismDogma()
+    assert feudalism.symbol == SymbolType.CASTLE
+
+    activating_player = Mock(splayable_colors=splayable_colors)
+    effect = feudalism.dogma_effect(Mock(), activating_player)
+
+    player_splayable_colors = {Color.YELLOW, Color.PURPLE} & splayable_colors
+    if not player_splayable_colors:
+        assert effect is None
+    else:
+        assert isinstance(effect, Optional)
+        operation = effect.operation
+        assert isinstance(operation, Splay)
+        assert operation.target_player == activating_player
+        assert operation.allowed_colors == player_splayable_colors
+        assert operation.allowed_directions == {SplayDirection.LEFT}

@@ -88,17 +88,30 @@ class Draw(Primitive):
 @dataclass
 class Return(Prompt):
     allowed_cards: game_state_to_card_set_func
-    min_cards: int
-    max_cards: int
+    min_cards: int = 1
+    max_cards: int = 1
     on_completion: card_set_to_effect_func = None
+    card_location: CardLocation = CardLocation.HAND
+    card_destination: CardLocation = CardLocation.DECK
+
+
+@dataclass
+class Score(Prompt):
+    allowed_cards: game_state_to_card_set_func
+    min_cards: int = 1
+    max_cards: int = 1
+    on_completion: card_set_to_effect_func = None
+    card_location: CardLocation = CardLocation.HAND
 
 
 @dataclass
 class Meld(Primitive):
     allowed_cards: game_state_to_card_set_func
     min_cards: int = 1
-    max_cards: Union[int] = 1
+    max_cards: int = 1
     on_completion: card_set_to_effect_func = None
+    card_location: CardLocation = CardLocation.HAND
+    card_destination: CardLocation = CardLocation.BOARD
 
 
 @dataclass

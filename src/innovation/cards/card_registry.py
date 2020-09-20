@@ -24,6 +24,7 @@ from src.innovation.cards.card_effects import (
     ExchangeCards,
     Meld,
     Return,
+    Score,
     Optional,
     Tuck,
     Splay,
@@ -344,6 +345,46 @@ mutable_registry = MutableRegistry(
                 Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
                 Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
                 Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Alchemy",
+            color=Color.BLUE,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.LEAF, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Translation",
+            color=Color.BLUE,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.CROWN, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CROWN, Position.BOTTOM_RIGHT),
+            ],
+        ),
+        Card(
+            name="Education",
+            color=Color.PURPLE,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.LIGHT_BULB, Position.TOP_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LIGHT_BULB, Position.BOTTOM_MIDDLE),
+            ],
+        ),
+        Card(
+            name="Feudalism",
+            color=Color.PURPLE,
+            age=3,
+            symbols=[
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_LEFT),
+                Symbol(SymbolType.LEAF, Position.BOTTOM_MIDDLE),
+                Symbol(SymbolType.CASTLE, Position.BOTTOM_RIGHT),
             ],
         ),
     ]
@@ -1411,6 +1452,178 @@ class PaperDogma2(BaseDogma):
                 draw_location=lambda _: CardLocation.HAND,
                 level=4,
                 num_cards=num_left_splays,
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Alchemy", position=0)
+class AlchemyDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Draw, None]:
+        num_draws = activating_player.symbol_count.get(SymbolType.CASTLE, 0) // 3
+
+        if num_draws:
+            return Draw(
+                target_player=activating_player,
+                draw_location=lambda cards: (
+                    CardLocation.HAND
+                    if not any(card.color == Color.RED for card in cards)
+                    else CardLocation.DECK
+                ),
+                level=4,
+                num_cards=num_draws,
+                reveal=True,
+                on_completion=lambda cards: (
+                    Return(
+                        allowed_cards=lambda _, __, ___: activating_player.hand,
+                        min_cards=len(activating_player.hand),
+                        max_cards=len(activating_player.hand),
+                    )
+                    if any(card.color == Color.RED for card in cards)
+                    else None
+                ),
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Alchemy", position=1)
+class AlchemyDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Meld, None]:
+        if activating_player.hand:
+            return Meld(
+                allowed_cards=lambda _, __, ___: activating_player.hand,
+                on_completion=lambda cards: (
+                    Score(
+                        allowed_cards=lambda _, __, ___: (
+                            activating_player.hand - cards
+                        )
+                    )
+                    if activating_player.hand - cards
+                    else None
+                ),
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Translation", position=0)
+class TranslationDogma1(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.score_pile:
+            return Optional(
+                Meld(
+                    allowed_cards=lambda _, __, ___: activating_player.score_pile,
+                    min_cards=len(activating_player.score_pile),
+                    max_cards=len(activating_player.score_pile),
+                    card_location=CardLocation.SCORE_PILE,
+                )
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Translation", position=1)
+class TranslationDogma2(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CROWN
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Achieve, None]:
+        if all(
+            card.has_symbol_type(SymbolType.CROWN)
+            for card in activating_player.top_cards
+        ):
+            return Achieve(
+                achievement=GLOBAL_ACHIEVEMENTS_REGISTRY.registry.get("World")
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Education", position=0)
+class EducationDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.LIGHT_BULB
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        if activating_player.score_pile:
+            return Optional(
+                Return(
+                    allowed_cards=lambda _, __, ___: get_highest_cards(
+                        activating_player.score_pile
+                    ),
+                    card_location=CardLocation.SCORE_PILE,
+                    on_completion=lambda cards: (
+                        Draw(
+                            target_player=activating_player,
+                            draw_location=lambda _: CardLocation.HAND,
+                            level=list(
+                                get_highest_cards(activating_player.score_pile - cards)
+                            )[0].age
+                            + 2,
+                        )
+                        if activating_player.score_pile - cards
+                        else None
+                    ),
+                )
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Feudalism", position=0)
+class FeudalismDemand(BaseDemand):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def demand_effect(
+        _, activating_player: Player, target_player: Player
+    ) -> Union[TransferCard, None]:
+        target_transferable_cards = {
+            card
+            for card in target_player.hand
+            if card.has_symbol_type(SymbolType.CASTLE)
+        }
+
+        if target_transferable_cards:
+            return TransferCard(
+                giving_player=target_player,
+                allowed_receiving_players={activating_player},
+                allowed_cards=lambda _, __, ___: target_transferable_cards,
+                card_location=CardLocation.HAND,
+                card_destination=CardLocation.HAND,
+            )
+
+
+@register_effect(registry=mutable_registry, card_name="Feudalism", position=1)
+class FeudalismDogma(BaseDogma):
+    @property
+    def symbol(self) -> SymbolType:
+        return SymbolType.CASTLE
+
+    @staticmethod
+    def dogma_effect(_, activating_player: Player) -> Union[Optional, None]:
+        splayable_colors = activating_player.splayable_colors & {
+            Color.YELLOW,
+            Color.PURPLE,
+        }
+
+        if splayable_colors:
+            return Optional(
+                Splay(
+                    target_player=activating_player,
+                    allowed_colors=splayable_colors,
+                    allowed_directions={SplayDirection.LEFT},
+                )
             )
 
 
